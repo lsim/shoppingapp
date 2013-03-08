@@ -1,7 +1,15 @@
 doctype 5
 html
-  head
-    title= title
-    link(rel='stylesheet', href='/stylesheets/style.css')
-  body
-    block content
+	head
+		title= title
+		link(rel='stylesheet', href='/stylesheets/style.css')
+		script(src='http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js')
+		script(src='http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js')
+		script(src='http://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js')
+	body
+		header
+			block header
+		div(role='main')
+			block content
+		footer
+			block footer

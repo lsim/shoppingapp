@@ -36,7 +36,8 @@ app.configure('development', function(){
 
 
 //Register routes with verbs
-app.get('/', routes.index);
+app.get('/', routes.indexGet);
+app.post('/', routes.indexPost);
 
 //Connect to db and start listening for connections
 db.once('open', function() {
