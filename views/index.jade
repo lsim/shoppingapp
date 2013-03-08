@@ -1,0 +1,9 @@
+extends layout
+
+block content
+	h1= title
+	.container
+		.content
+			ul
+				each item in list.Items
+					li= item.Text + ' ' + item.Multiplicity
