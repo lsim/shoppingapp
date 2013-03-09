@@ -5,7 +5,6 @@
 
 var express = require('express')
   , routes = require('./routes')
-  , user = require('./routes/user')
   , http = require('http')
   , path = require('path')
   , mongoose = require('mongoose');
@@ -37,6 +36,7 @@ app.configure('development', function(){
 
 //Register routes with verbs
 app.get('/', routes.indexGet);
+app.get('/list', routes.listGetJson)
 app.post('/', routes.indexPost);
 
 //Connect to db and start listening for connections

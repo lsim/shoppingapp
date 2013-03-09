@@ -1,0 +1,10 @@
+
+<div data-ng-controller='ShoppingListCtrl'>
+	<input type='text' data-ng-model='itemText' />
+	<input type='text' data-ng-model='itemMultiplicity' />
+	<ul>
+		<li data-ng-repeat='item in list.Items' >
+			{{item.Text}} ({{item.Multiplicity}})
+		</li>
+	</ul>
+</div>

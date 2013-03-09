@@ -2,6 +2,5 @@ extends layout
 
 block content
 	h1= title
-	ul
-		each item in list.Items
-			li= item.Text + ' (' + item.Multiplicity + ')'
+	div(data-ng-view)
+

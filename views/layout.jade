@@ -1,11 +1,9 @@
 doctype 5
-html
+html(lang='en', data-ng-app='shoppingApp')
 	head
 		title= title
-		link(rel='stylesheet', href='/stylesheets/style.css')
-		script(src='http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js')
-		script(src='http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js')
-		script(src='http://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js')
+
+		link(rel='stylesheet', href='css/style.css')
 	body
 		header
 			block header
@@ -13,3 +11,11 @@ html
 			block content
 		footer
 			block footer
+		script(src='js/lib/angular-1.0.5.js')
+		script(src='js/lib/jquery-1.9.1.js')
+		script(src='js/main.js')
+		script(src='js/services.js')
+		script(src='js/controllers.js')
+		script(src='js/filters.js')
+		script(src='js/directives.js')
+
