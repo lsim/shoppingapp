@@ -37,7 +37,7 @@ app.configure('development', function(){
 //Register routes with verbs
 app.get('/', routes.indexGet);
 app.get('/list', routes.listGetJson)
-app.post('/', routes.indexPost);
+app.post('/list', routes.listSynchJson)
 
 //Connect to db and start listening for connections
 db.once('open', function() {

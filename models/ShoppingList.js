@@ -3,15 +3,14 @@ var mongoose = require('mongoose'),
 	ObjectId = Schema.ObjectId;
 
 var ShoppingListSchema = new Schema({
-	Id: ObjectId,
-	Items: [{
-		Text: String,
-		Multiplicity: String,
-		AddedBy: String
+	items: [{
+		text: String,
+		mult: String,
+		addedBy: String
 	}],
-	Status: {type: String, required: true, enum: ['Closed','Open','Repeating']},
-	OwnerGroup: ObjectId,
-	ClosedDate: Date
+	status: { type: String, required: true, enum: ['Closed','Open','Repeating']},
+	ownerGroup: ObjectId,
+	closedDate: Date
 });
 
 module.exports = mongoose.model('ShoppingList', ShoppingListSchema);

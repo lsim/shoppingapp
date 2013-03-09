@@ -1,10 +1,11 @@
 
 <div data-ng-controller='ShoppingListCtrl'>
 	<input type='text' data-ng-model='itemText' />
-	<input type='text' data-ng-model='itemMultiplicity' />
+	<input type='number' data-ng-model='itemMult' />
+	<button type='button' data-ng-click='addItem()' >Add</button>
 	<ul>
-		<li data-ng-repeat='item in list.Items' >
-			{{item.Text}} ({{item.Multiplicity}})
+		<li data-ng-repeat='item in list.items' >
+			{{item.text}} ({{item.mult}})
 		</li>
 	</ul>
 </div>
