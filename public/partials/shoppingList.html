@@ -1,11 +1,17 @@
 
 <div data-ng-controller='ShoppingListCtrl'>
-	<input type='text' data-ng-model='itemText' />
-	<input type='number' data-ng-model='itemMult' />
+    <label>
+        Text
+        <input type='text' data-ng-model='itemText' />
+    </label>
+    <label>
+        Number
+        <input type='number' data-ng-model='itemMult' />
+    </label>
 	<button type='button' data-ng-click='addItem()' >Add</button>
 	<ul>
-		<li data-ng-repeat='item in list.items' >
-			{{item.text}} ({{item.mult}})
+		<li data-ng-repeat='item in list.items | filter:{isDeleted:false}' >
+            <span data-ng-click='deleteItem(item._id)' >X</span> {{item.text}} ({{item.mult}})
 		</li>
 	</ul>
 </div>
