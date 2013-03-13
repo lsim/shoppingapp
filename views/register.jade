@@ -1,0 +1,27 @@
+extends layout
+
+block content
+    h1= title
+    form(action='/register', method='post')
+        p #{flash}
+        div
+            label User name:
+                input(type='text', name='userName', id='userName'))
+        div
+            label Password:
+                input(type='password', name='password', id='password')
+        div
+            label Repeat password:
+                input(type='password', name='password2', id='password2')
+        div
+            label Select shopping group
+                select(name='selectedGroup')
+                    each group in groups
+                        option(value=group._id) #{group.name}
+        div
+            label Provide group password
+                input(type='password', name='groupPassword', id='groupPassword')
+        div
+            button Submit
+    p
+        a(href='/group') Create group

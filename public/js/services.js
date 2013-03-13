@@ -1,4 +1,3 @@
-'use strict'
+'use strict';
 
-angular.module('shoppingApp.services', []).
-	value('version', '0.1');
+angular.module('shoppingApp.services', []);

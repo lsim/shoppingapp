@@ -1,8 +1,8 @@
-'use strict'
+'use strict';
 
 angular.module('shoppingApp.directives', []).
-	directive('appVersion', ['version', function(version) {
+	directive('foo', function() {
 		return function(scope, elm, attrs) {
-			elm.text(version);
+
 		};
-	}]);
+	});

@@ -4,10 +4,15 @@
  */
 
 var express = require('express')
-  , routes = require('./routes')
+  , indexRoutes = require('./routes/index')
+  , loginRoutes = require('./routes/auth')
   , http = require('http')
   , path = require('path')
-  , mongoose = require('mongoose');
+  , mongoose = require('mongoose')
+  , passport = require('passport')
+  , LocalStrategy = require('passport-local').Strategy
+  , flash = require('connect-flash')
+  , ShoppingGroupModel = require('./models/ShoppingGroup');
 
 //Database setup
 mongoose.connect('localhost','shoppingdb');
@@ -25,6 +30,13 @@ app.configure(function(){
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
   app.use(express.methodOverride());
+
+  app.use(express.cookieParser());
+  app.use(express.session({ secret: 'ejvin og maggie'}));
+  app.use(passport.initialize());
+  app.use(passport.session());
+  app.use(flash());
+
   app.use(app.router);
   app.use(express.static(path.join(__dirname, 'public')));
 });
@@ -33,11 +45,59 @@ app.configure('development', function(){
   app.use(express.errorHandler());
 });
 
+//Set up authentication mechanism
+passport.use(new LocalStrategy(
+    function(username, password, done) {
+        ShoppingGroupModel.findOne({ users: { $elemMatch: { userName: username }}},
+            function(err, group) {
+                function validLogin(group, username, password) {
+                    var user;
+                    group.users.forEach(function(u) { user = u.userName == username && u; });
+                    if(!user)
+                        return false;
+                    if(user.passwordHash != require('crypto').createHash('md5').update(password).digest('hex'))
+                        return false;
+                    return user;
+                }
+                if(err)
+                    return done(err);
+                if(!group)
+                    return done(null, false, { message: 'Incorrect username. Please try again'});
 
-//Register routes with verbs
-app.get('/', routes.indexGet);
-app.get('/list', routes.listGetJson)
-app.post('/list', routes.listSynchJson)
+                var user = validLogin(group, username, password);
+                if(!user)
+                    return done(null, false, { message: 'Incorrect password. Please try again'});
+                return done(null, user);
+            });
+    }
+));
+passport.serializeUser(function(user, done) {
+    done(null, user._id);
+});
+
+passport.deserializeUser(function(id, done) {
+    ShoppingGroupModel.findOne({ users: { $elemMatch: { _id: id}}}, function (err, group) {
+        var user;
+        group.users && group.users.forEach(function(u) { user = u._id == id && u; })
+        done(err, user);
+    });
+});
+//Register indexRoutes with verbs
+app.get('/', ensureAuthenticated, indexRoutes.indexGet);
+app.get('/list', ensureAuthenticated, indexRoutes.listGetJson);
+app.post('/list', ensureAuthenticated, indexRoutes.listSynchJson);
+
+app.get('/group', loginRoutes.groupGet);
+app.post('/group', loginRoutes.groupPost);
+app.get('/register', loginRoutes.registerGet);
+app.post('/register', loginRoutes.registerPost);
+app.get('/login', loginRoutes.loginGet);
+app.post('/login',
+    passport.authenticate('local', {
+        successRedirect: '/',
+        failureRedirect: '/login',
+        failureFlash: true})
+);
 
 //Connect to db and start listening for connections
 db.once('open', function() {
@@ -48,3 +108,12 @@ db.once('open', function() {
   });
 });
 
+// Simple route middleware to ensure user is authenticated.
+//   Use this route middleware on any resource that needs to be protected.  If
+//   the request is authenticated (typically via a persistent login session),
+//   the request will proceed.  Otherwise, the user will be redirected to the
+//   login page.
+function ensureAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) { return next(); }
+    res.redirect('/login')
+}

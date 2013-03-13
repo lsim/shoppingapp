@@ -3,12 +3,12 @@ var mongoose = require('mongoose'),
 	ObjectId = Schema.ObjectId;
 
 var ShoppingGroupSchema = new Schema({
-	Id: ObjectId,
-	Name: { type: String, required: true },
-	PasswordHash: { type: String, required: true},
-	Users: [{
-		UserName: String,
-		PasswordHash: String
+	id: ObjectId,
+	name: { type: String, required: true },
+	passwordHash: { type: String, required: true},
+	users: [{
+		userName: String,
+		passwordHash: String
 	}]
 });
 

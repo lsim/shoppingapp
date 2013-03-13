@@ -1,5 +1,6 @@
 var ShoppingListModel = require('../models/ShoppingList');
 
+
 /*
  * GET home page.
  */
@@ -16,8 +17,7 @@ exports.listGetJson = function(req, res) {
 			console.log('Error fetching shopping list from db ' + err);
 			return;
 		}
-		console.log('Got list from db: ' + (lists && lists.length > 0 && lists[0]));
-		var model = (lists && lists.length > 0 && lists[0]) || new ShoppingListModel({status: 'Open'});//TODO: add group id to filter
+		var model = (lists && lists.length > 0 && lists[0]) || new ShoppingListModel({status: 'Open'});//TODO: add group id
 
 		res.json(model);
 	});

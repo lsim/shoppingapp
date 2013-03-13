@@ -1,0 +1,19 @@
+extends layout
+
+block content
+    h1= title
+    form(action='/group', method='post')
+        p #{flash}
+        div
+            label Group name
+                input(type='text', name='name', id='name')
+        div
+            label Group password
+                input(type='password', name='password', id='password')
+        div
+            label Repeat password
+                input(type='password', name='password2', id='password2')
+        div
+            button Submit
+
+
