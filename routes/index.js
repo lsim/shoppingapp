@@ -1,4 +1,5 @@
 var ShoppingListModel = require('../models/ShoppingList');
+var ShoppingGroupModel = require('../models/ShoppingGroup');
 
 
 /*
@@ -11,13 +12,13 @@ exports.indexGet = function(req, res) {
 };
 
 exports.listGetJson = function(req, res) {
-	//TODO: match on group id as well
-	ShoppingListModel.find({ status: 'Open' }, function(err, lists) {
+    var group = req.user.parent();
+	ShoppingListModel.findOne({ status: 'Open', ownerGroup: group._id }, function(err, list) {
 		if(err) {
 			console.log('Error fetching shopping list from db ' + err);
-			return;
-		}
-		var model = (lists && lists.length > 0 && lists[0]) || new ShoppingListModel({status: 'Open'});//TODO: add group id
+            return res.json(err);
+        }
+		var model = list || new ShoppingListModel({status: 'Open', ownerGroup: group._id});
 
 		res.json(model);
 	});
@@ -27,14 +28,14 @@ exports.listGetJson = function(req, res) {
  * POST list json
  */
  exports.listSynchJson = function(req, res) {
-
+    var group = req.user.parent();
     //Look up the list in db so we can update it with the posted data
- 	ShoppingListModel.find({_id: req.body._id }, function(err, lists) {
+ 	ShoppingListModel.findOne({_id: req.body._id, ownerGroup: group._id }, function(err, list) {
 		if(err) {
 			console.log('Error fetching shopping list from db ' + err);
-			res.json({});
+			return res.json(err);
 		}
-		var model = (lists && lists.length > 0 && lists[0]) || new ShoppingListModel({_id: req.body._id, status: req.body.status});
+		var model = list || new ShoppingListModel({_id: req.body._id, status: req.body.status, ownerGroup: group._id});
 
         var origItems = model.items;
         var deletedItemIds = req.body.items.filter(function(item) { return item.isDeleted; }).map(function(item) { return item._id});

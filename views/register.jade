@@ -3,7 +3,7 @@ extends layout
 block content
     h1= title
     form(action='/register', method='post')
-        p #{flash}
+        p= flash
         div
             label User name:
                 input(type='text', name='userName', id='userName'))
