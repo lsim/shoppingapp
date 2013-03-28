@@ -52,7 +52,7 @@ passport.use(new LocalStrategy(
             function(err, group) {
                 function validLogin(group, username, password) {
                     var user;
-                    group.users.forEach(function(u) { user = u.userName == username && u; });
+                    group.users.forEach(function(u) { if(u && u.userName == username) user = u; });
                     if(!user)
                         return false;
                     if(user.passwordHash != require('crypto').createHash('md5').update(password).digest('hex'))
