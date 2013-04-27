@@ -24,6 +24,10 @@ exports.listGetJson = function(req, res) {
 	});
 }
 
+exports.listGetFullJson = function(req, res) {
+    res.json({ title: 'foobarbaz', items: [ 'item1', 'item2', 'item3']});
+}
+
 /*
  * POST list json
  */

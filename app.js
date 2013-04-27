@@ -86,6 +86,7 @@ passport.deserializeUser(function(id, done) {
 app.get('/', ensureAuthenticated, indexRoutes.indexGet);
 app.get('/list', ensureAuthenticated, indexRoutes.listGetJson);
 app.post('/list', ensureAuthenticated, indexRoutes.listSynchJson);
+app.get('/fulljson', indexRoutes.listGetFullJson);
 
 app.get('/group', loginRoutes.groupGet);
 app.post('/group', loginRoutes.groupPost);

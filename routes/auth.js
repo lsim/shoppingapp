@@ -2,7 +2,7 @@ var ShoppingGroupModel = require('../models/ShoppingGroup');
 
 var getFlashMsg = function(req) {
     var flash = req.flash();
-    return flash.error && flash.error.length > 0 ? flash.error[0] : '';
+    return flash.error && flash.error.length ? flash.error[0] : '';
 };
 
 var getHashedPassword = function(password) {
