@@ -12,7 +12,7 @@ exports.indexGet = function(req, res) {
 };
 
 exports.listGetJson = function(req, res) {
-    var group = req.user.parent();
+    var group = req.group;
 	ShoppingListModel.findOne({ status: 'Open', ownerGroup: group._id }, function(err, list) {
 		if(err) {
 			console.log('Error fetching shopping list from db ' + err);
@@ -25,14 +25,16 @@ exports.listGetJson = function(req, res) {
 }
 
 exports.listGetFullJson = function(req, res) {
-    res.json({ title: 'foobarbaz', items: [ 'item1', 'item2', 'item3']});
+    return exports.listGetJson(req, res);
+
+    //res.json({ title: 'foobarbaz', items: [ 'item1', 'item2', 'item3']});
 }
 
 /*
  * POST list json
  */
  exports.listSynchJson = function(req, res) {
-    var group = req.user.parent();
+    var group = req.group;
     //Look up the list in db so we can update it with the posted data
  	ShoppingListModel.findOne({_id: req.body._id, ownerGroup: group._id }, function(err, list) {
 		if(err) {
