@@ -1,6 +1,6 @@
 var ShoppingListModel = require('../models/ShoppingList');
 var ShoppingGroupModel = require('../models/ShoppingGroup');
-
+var Deferred = require('JQDeferred');
 
 /*
  * GET home page.
@@ -11,22 +11,31 @@ exports.indexGet = function(req, res) {
 	});
 };
 
+function getOpenList(group, fields) {
+    var openingList = Deferred();
+    ShoppingListModel.findOne({ status: 'Open', ownerGroup: group._id }, fields, function(err, list) {
+        if(err) {
+            console.log('Error fetching shopping list from db ' + err);
+            openingList.reject(err);
+        } else {
+            var model = list || new ShoppingListModel({status: 'Open', ownerGroup: group._id});
+            openingList.resolve(model);
+        }
+    });
+    return openingList.promise();
+}
+
 exports.listGetJson = function(req, res) {
     var group = req.group;
-	ShoppingListModel.findOne({ status: 'Open', ownerGroup: group._id }, function(err, list) {
-		if(err) {
-			console.log('Error fetching shopping list from db ' + err);
-            return res.json(err);
-        }
-		var model = list || new ShoppingListModel({status: 'Open', ownerGroup: group._id});
-
-		res.json(model);
-	});
+    getOpenList(group).always(res.json);
 }
 
 exports.listGetFullJson = function(req, res) {
-    return exports.listGetJson(req, res);
-
+    var group = req.group;
+    getOpenList(group, 'items.text').done(function(openList) {
+        var mappedList = openList.items.map(function(item) { return item.text; });
+        res.json({ title: group.name, items: mappedList });
+    }).fail(res.json);
     //res.json({ title: 'foobarbaz', items: [ 'item1', 'item2', 'item3']});
 }
 

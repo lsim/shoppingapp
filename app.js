@@ -10,7 +10,8 @@ var express = require('express')
   , path = require('path')
   , mongoose = require('mongoose')
   , flash = require('connect-flash')
-  , ShoppingGroupModel = require('./models/ShoppingGroup');
+  , ShoppingGroupModel = require('./models/ShoppingGroup')
+  , Deferred = require("JQDeferred");
 
 //Database setup
 mongoose.connect('localhost','shoppingdb');
