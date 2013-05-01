@@ -27,7 +27,15 @@ function getOpenList(group, fields) {
 
 exports.listGetJson = function(req, res) {
     var group = req.group;
-    getOpenList(group).always(res.json);
+    ShoppingListModel.findOne({ status: 'Open', ownerGroup: group._id }, function(err, list) {
+        if(err) {
+            console.log('Error fetching shopping list from db ' + err);
+            res.json(err);
+        } else {
+            var model = list || new ShoppingListModel({status: 'Open', ownerGroup: group._id});
+            res.json(model);
+        }
+    });
 }
 
 exports.listGetFullJson = function(req, res) {
