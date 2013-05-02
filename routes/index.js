@@ -44,21 +44,20 @@ exports.listGetFullJson = function(req, res) {
         var mappedList = openList.items.map(function(item) { return item.text; });
         res.json({ title: group.name, items: mappedList });
     }).fail(res.json);
-    //res.json({ title: 'foobarbaz', items: [ 'item1', 'item2', 'item3']});
 }
 
 /*
  * POST list json
  */
- exports.listSynchJson = function(req, res) {
+exports.listSynchJson = function(req, res) {
     var group = req.group;
     //Look up the list in db so we can update it with the posted data
- 	ShoppingListModel.findOne({_id: req.body._id, ownerGroup: group._id }, function(err, list) {
-		if(err) {
-			console.log('Error fetching shopping list from db ' + err);
-			return res.json(err);
-		}
-		var model = list || new ShoppingListModel({_id: req.body._id, status: req.body.status, ownerGroup: group._id});
+    ShoppingListModel.findOne({_id: req.body._id, ownerGroup: group._id }, function(err, list) {
+        if(err) {
+            console.log('Error fetching shopping list from db ' + err);
+            return res.json(err);
+        }
+        var model = list || new ShoppingListModel({_id: req.body._id, status: req.body.status, ownerGroup: group._id});
 
         var origItems = model.items;
         var deletedItemIds = req.body.items.filter(function(item) { return item.isDeleted; }).map(function(item) { return item._id});
@@ -69,13 +68,13 @@ exports.listGetFullJson = function(req, res) {
             .filter(function(item) { return deletedItemIds.indexOf(item._id.toHexString()) < 0; })//Remove deleted items
             .concat(newItems);//Add new items
 
-		model.save(function(err, list) {
-			if(err) {
-				console.log('db save failed: ' + err.message);
-				model.items = origItems;//Revert list changes if the db save failed
-			}
+        model.save(function(err, list) {
+            if(err) {
+                console.log('db save failed: ' + err.message);
+                model.items = origItems;//Revert list changes if the db save failed
+            }
             //Return the shopping list as it looks after the persisting has taken place
-			res.json(model);
-		});
- 	});
- };
+            res.json(model);
+        });
+    });
+};
