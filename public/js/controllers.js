@@ -4,26 +4,25 @@ function ListItem(item, _isNew) {
 	this.isNew = _isNew;
 	this.isDeleted = false;
 	this.text = item.text;
-	this.mult = item.mult;
     this._id = item._id;
 }
 
 function ShoppingListCtrl($scope, $http) {
 
-  	$scope.itemMult = 1;
+    $scope.newItem = { text: '' };
 
     //Initialize with data from the server
 	$http.get('list').success(function(data) {
 		$scope.list = data;
+        registerForSse($scope.list._id);
 		$scope.list.items = $scope.list.items.map(function(item) { return new ListItem(item, false); });
 	});
 
 	$scope.addItem = function() {
-		if(!$scope.itemText || !$scope.itemMult)
+		if(!$scope.newItem.text)
 			return;
-		$scope.list.items.push(new ListItem({text: $scope.itemText, mult: $scope.itemMult}, true));
-		$scope.itemText = '';
-		$scope.itemMult = 1;
+		$scope.list.items.push(new ListItem({text: $scope.newItem.text }, true));
+		$scope.newItem.text = '';
 		$scope.synchList();//Trigger asynchronous synchronization of the list with the server
 	};
 
@@ -45,9 +44,30 @@ function ShoppingListCtrl($scope, $http) {
 			closedDate: $scope.list.closedDate 
 		}).success(function(data) {
 			$scope.list = data;
+            registerForSse($scope.list._id);
             $scope.list.items = $scope.list.items.map(function(item) { return new ListItem(item, false); });
 		});
 	};
+
+    var handleSse = function(msg) {
+        console.log('sse msg: ' + msg.data);
+        $scope.synchList();
+    }
+
+    var sseSource = null;
+    var listenerListId = null;
+    var registerForSse = function(listId) {
+//        if(listId === listenerListId)
+//            return;
+//        if(sseSource) {
+//            console.log('Unregistering old listener');
+//            sseSource.removeEventListener('message', handleSse);
+//        }
+//        console.log('Registering new listener');
+//        sseSource = new EventSource('/update-stream/' + listId);
+//        listenerListId = listId;
+//        sseSource.addEventListener('message', handleSse, false);
+    }
 }
 
 ShoppingListCtrl.$inject = ['$scope', '$http'];//Ensure minification doesn't break dependency injection

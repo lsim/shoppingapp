@@ -4,14 +4,14 @@
  */
 
 var express = require('express')
-  , indexRoutes = require('./routes/index')
-  , loginRoutes = require('./routes/auth')
+  //, indexRoutes = require('./routes/index')
+  //, loginRoutes = require('./routes/auth')
   , http = require('http')
   , path = require('path')
   , mongoose = require('mongoose')
-  , flash = require('connect-flash')
-  , ShoppingGroupModel = require('./models/ShoppingGroup')
-  , Deferred = require("JQDeferred");
+//  , flash = require('connect-flash')
+//  , ShoppingGroupModel = require('./models/ShoppingGroup')
+//  , Deferred = require("JQDeferred");
 
 //Database setup
 mongoose.connect('localhost','shoppingdb');
@@ -42,72 +42,9 @@ app.configure('development', function(){
   app.use(express.errorHandler());
 });
 
-var auth = express.basicAuth(authenticateUser);
-
-function checkAuth(req, res, next) {
-    if(!req.session.user_id) {
-        res.redirect('/login');
-        return;
-    }
-    ShoppingGroupModel.findOne({users: { $elemMatch: { _id: req.session.user_id }}},
-        function(err, group) {
-            if(err) {
-                res.redirect('/login');
-                return;
-            }
-            req.group = group;
-            res.header('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
-            next();
-        }
-    );
-}
-
-function authenticateUser(username, password, done) {
-    ShoppingGroupModel.findOne({ users: { $elemMatch: { userName: username }}},
-        function(err, group) {
-            function validLogin(group, username, password) {
-                var user = null;
-                group.users.forEach(function(u) { if(u && u.userName == username) user = u; });
-                if(!user)
-                    return done('No such user');
-                if(user.passwordHash != require('crypto').createHash('md5').update(password).digest('hex'))
-                    return done('Incorrect password');
-                return user;
-            }
-            if(err)
-                return done(err);
-            if(!group)
-                return done('Incorrect username. Please try again');
-
-            var user = validLogin(group, username, password);
-            if(!user)
-                return done('Incorrect password. Please try again');
-            return done(null, user);
-        }
-    );
-}
-
-//Register indexRoutes with verbs
-app.get('/', checkAuth, indexRoutes.indexGet);
-app.get('/list', checkAuth, indexRoutes.listGetJson);
-app.post('/list', checkAuth, indexRoutes.listSynchJson);
-app.get('/fulljson', checkAuth, indexRoutes.listGetFullJson);
-
-app.get('/group', loginRoutes.groupGet);
-app.post('/group', loginRoutes.groupPost);
-app.get('/register', loginRoutes.registerGet);
-app.post('/register', loginRoutes.registerPost);
-app.get('/login', loginRoutes.loginGet);
-app.post('/login', function(req, res, done) {
-    var post = req.body;
-    authenticateUser(post.userName, post.password, function(err, user) {
-        if(err) {
-            return done();
-        }
-        req.session.user_id = user._id;
-        res.redirect('/');
-    });
-});
+require('./routes/index').registerEndpoints(app);
+require('./routes/auth').registerEndpoints(app);
+require('./routes/sse').registerEndpoints(app);
 
 //Connect to db and start listening for connections
 db.once('open', function() {

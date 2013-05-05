@@ -7,7 +7,11 @@ a {
   color: #00B7FF;
 }
 
-.delete-icon {
+.delete-icon:hover {
     cursor: pointer;
-    background-color: orange;
+    /*background-color: orange;*/
+}
+
+button.button {
+    width: 100%;
 }

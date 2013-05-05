@@ -1,17 +1,23 @@
 
 <div data-ng-controller='ShoppingListCtrl'>
-    <label>
-        Text
-        <input type='text' data-ng-model='itemText' />
-    </label>
-    <label>
-        Number
-        <input type='number' data-ng-model='itemMult' />
-    </label>
-	<button type='button' data-ng-click='addItem()' >Add</button>
-	<ul>
+	<ng-suggest>
+		<input type='text' data-ng-model='newItem.text' placeholder='New item'/>
+		<ul class='list suggestions'>
+			<li data-ng-repeat='suggestion in suggestions'>
+				<a data-ng-click='acceptSuggestion(suggestion)'>
+					{{suggestion}}
+					<span class='chevron'></span>
+				</a>
+			</li>
+		</ul>
+	</ng-suggest>
+	<a class='button button-block' data-ng-click='addItem()' data-ng-show='newItem.text'>Add</a>
+	<ul class='list'>
 		<li data-ng-repeat='item in list.items | filter:{isDeleted:false}' >
-            <span data-ng-click='deleteItem(item._id)' class='delete-icon'>X</span> {{item.text}} ({{item.mult}})
+			<a data-ng-click='deleteItem(item._id)'>
+				{{item.text}}
+				<span class='chevron'></span>
+			</a>
 		</li>
 	</ul>
 </div>
