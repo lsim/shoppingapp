@@ -3,15 +3,19 @@ body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
-a {
-  color: #00B7FF;
-}
-
-.delete-icon:hover {
+.list li:hover {
     cursor: pointer;
-    /*background-color: orange;*/
 }
 
 button.button {
     width: 100%;
+}
+
+.confirm-modal {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom:0;
+    z-index: 10;
 }
