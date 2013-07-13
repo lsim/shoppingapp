@@ -1,0 +1,10 @@
+{
+    "name":  "ShoppingApp3.1",
+    "version": "0.0.1",
+    "dependencies": {
+      "angular-unstable": "1.1.5",
+      "requirejs": "latest",
+      "underscore": "1.5.1",
+	  "jquery": "latest"
+    }
+}

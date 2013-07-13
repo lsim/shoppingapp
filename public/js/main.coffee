@@ -1,0 +1,1 @@
+require ['controllers', 'directives', 'filters', 'services']

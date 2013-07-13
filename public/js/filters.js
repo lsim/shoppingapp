@@ -1,3 +1,4 @@
 'use strict';
+define(['app'], function(app) {
 
-angular.module('shoppingApp.filters', []);
+});

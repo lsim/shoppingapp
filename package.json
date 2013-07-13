@@ -11,6 +11,8 @@
     "mongoose": "*",
     "connect-flash": "*",
     "crypto": "*",
-    "JQDeferred": "*"
+    "JQDeferred": "*",
+    "bower": "*",
+    "coffee-script": "1.6.3"
   }
 }
