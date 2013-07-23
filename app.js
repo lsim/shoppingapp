@@ -32,7 +32,6 @@ app.configure(function(){
 
   app.use(express.cookieParser());
   app.use(express.session({ secret: 'ejvin og maggie'}));
-  //app.use(flash());
 
   app.use(app.router);
   app.use(express.static(path.join(__dirname, 'public')));

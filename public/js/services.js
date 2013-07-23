@@ -8,6 +8,34 @@
           return $http.get('/suggest?term=' + encodeURIComponent(term));
         };
       }
+    ]).factory('authAPIService', [
+      '$http', '$q', function($http, $q) {
+        return {
+          login: function(username, password) {
+            return $http.post('login2', {
+              username: username,
+              password: password
+            });
+          },
+          getGroups: function() {
+            return $http.get('groups');
+          },
+          register: function(username, password, groupId, groupPassword) {
+            return $http.post('register', {
+              username: username,
+              password: password,
+              groupId: groupId,
+              groupPassword: groupPassword
+            });
+          },
+          createGroup: function(groupName, groupPassword) {
+            return $http.post('groups', {
+              groupName: groupName,
+              groupPassword: groupPassword
+            });
+          }
+        };
+      }
     ]);
     angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer']).factory('authService', [
       '$rootScope', 'httpBuffer', function($rootScope, httpBuffer) {
@@ -50,7 +78,7 @@
         var $http, buffer, retryHttpRequest;
         buffer = [];
         $http = null;
-        return retryHttpRequest = function(config, deferred) {
+        retryHttpRequest = function(config, deferred) {
           var errorCallback, successCallback;
           successCallback = function(response) {
             return deferred.resolve(response);
@@ -59,21 +87,21 @@
             return deferred.reject(response);
           };
           $http = $http || $injector.get('$http');
-          $http(config).then(successCallback, errorCallback);
-          return {
-            append: function(config, deferred) {
-              return buffer.push({
-                config: config,
-                deferred: deferred
-              });
-            },
-            retryAll: function() {
-              buffer.forEach(function(bufferItem) {
-                return retryHttpRequest(bufferItem.config, bufferItem.deferred);
-              });
-              return buffer = [];
-            }
-          };
+          return $http(config).then(successCallback, errorCallback);
+        };
+        return {
+          append: function(config, deferred) {
+            return buffer.push({
+              config: config,
+              deferred: deferred
+            });
+          },
+          retryAll: function() {
+            buffer.forEach(function(bufferItem) {
+              return retryHttpRequest(bufferItem.config, bufferItem.deferred);
+            });
+            return buffer = [];
+          }
         };
       }
     ]);

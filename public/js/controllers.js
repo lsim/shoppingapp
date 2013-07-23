@@ -135,10 +135,7 @@
       return $scope.getLatest();
     };
     ShoppingListCtrl.$inject = ['$scope', '$http'];
-    app.module.controller('ShoppingListCtrl', ShoppingListCtrl);
-    return {
-      ShoppingListCtrl: ShoppingListCtrl
-    };
+    return app.module.controller('ShoppingListCtrl', ShoppingListCtrl);
   });
 
 }).call(this);

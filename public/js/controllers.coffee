@@ -40,6 +40,7 @@ define ['app'], (app) ->
           doDelete(item._id)
     )()
 
+    #TODO: factor $http stuff into service where it belongs
     $scope.postChanges = () ->
       changedItems = $scope.list.items.filter (item) -> item.isNew or item.isDeleted
       changedItems.forEach (item) -> if item.isNew then delete item._id
@@ -101,7 +102,5 @@ define ['app'], (app) ->
     #Initialize with data from the server
     $scope.getLatest()
 
-  ShoppingListCtrl.$inject = ['$scope', '$http'] # Ensure that minification doesn't break dependency injection
+  ShoppingListCtrl.$inject = ['$scope', '$http']
   app.module.controller('ShoppingListCtrl', ShoppingListCtrl)
-  # Return/export
-  ShoppingListCtrl : ShoppingListCtrl

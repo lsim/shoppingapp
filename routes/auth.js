@@ -16,7 +16,7 @@ var AuthExports = {
       ShoppingGroupModel.findOne({users: { $elemMatch: { _id: req.session.user_id }}},
         function(err, group) {
           if(err) {
-            res.redirect('/login');
+            res.send(401, 'Authentication required');
             return;
           }
           req.group = group;
@@ -76,6 +76,7 @@ var AuthExports = {
       );
     }
 
+    //TODO: deprecated. Remove when auth api is working
     app.post('/login', function(req, res) {
       var post = req.body;
       authenticateUser(post.userName, post.password, function(err, user) {
@@ -85,6 +86,18 @@ var AuthExports = {
         }
         req.session.user_id = user._id;
         res.redirect('/');
+      });
+    });
+
+    app.post('/login2', function(req, res) {
+      var post = req.body;
+      authenticateUser(post.username, post.password, function(err, user) {
+        if(err) {
+          res.send(500, err);
+          return;
+        }
+        req.session.user_id = user._id;
+        res.json({status: 'ok'});
       });
     });
 
@@ -138,6 +151,34 @@ var AuthExports = {
       });
     });
 
+    app.get('/groups', function(req, res, next) {
+      ShoppingGroupModel.find({}, { name: 1}, function(err, results) {
+        if(err)
+          return next(err);
+        res.json(results);
+      })
+    });
+
+    app.post('/groups', function(req, res) {
+      var name = req.body.groupName;
+      var pass = req.body.groupPassword;
+      ShoppingGroupModel.count({name: name}, function(err, count) {
+        if(err)
+          return next(err);
+        if(count) {
+          return next({reason : 'collision'});
+        }
+
+        var newGroup = new ShoppingGroupModel({name: name, passwordHash: getHashedPassword(pass)});
+        newGroup.save(function(err) {
+          if(err)
+            return next(err);
+          res.json({status: 'ok'});
+        })
+      });
+    });
+
+    //TODO: deprecated: should be removed as we move to authentication API
     app.get('/group', function(req, res) {
       res.render('group', {
         title: 'Create a group'
@@ -145,6 +186,7 @@ var AuthExports = {
       });
     });
 
+    //TODO: deprecated: should be removed as we move to authentication API
     app.post('/group', function(req, res) {
       ShoppingGroupModel.findOne({name: req.body.name}, function(err, results) {
         if(err) {

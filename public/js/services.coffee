@@ -15,6 +15,17 @@ define ['app'], (app) ->
   #      promise.then(success, failure)
   #  ])
   #.config(['$httpProvider', ($httpProvider) -> $httpProvider.responseInterceptors.push('authHttpInterceptor') ])
+  .factory('authAPIService', ['$http', '$q', ($http, $q) ->
+    #return/export:
+    login: (username, password) ->
+      $http.post('login2', {username, password})
+    getGroups: () ->
+      $http.get('groups')
+    register: (username, password, groupId, groupPassword) ->
+      $http.post 'register', {username, password, groupId, groupPassword}
+    createGroup: (groupName, groupPassword) ->
+      $http.post 'groups', {groupName, groupPassword}
+  ])
 
   angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer'])
   .factory('authService', ['$rootScope','httpBuffer', ($rootScope, httpBuffer) ->
@@ -44,10 +55,7 @@ define ['app'], (app) ->
         # otherwise, default behaviour
         $q.reject(response)
 
-
       return (promise) -> promise.then(success, error)
-
-
     ]
     $httpProvider.responseInterceptors.push(interceptor)
   ])
@@ -69,16 +77,15 @@ define ['app'], (app) ->
       $http = $http or $injector.get('$http')
       $http(config).then(successCallback, errorCallback)
 
-
     # return
-      # Appends HTTP request configuration object with deferred response attached to buffer.
-      append: (config, deferred) ->
-        buffer.push
-          config: config,
-          deferred: deferred
-      # Retries all the buffered requests clears the buffer.
-      retryAll: () ->
-        buffer.forEach (bufferItem) ->
-          retryHttpRequest(bufferItem.config, bufferItem.deferred)
-        buffer = []
+    # Appends HTTP request configuration object with deferred response attached to buffer.
+    append: (config, deferred) ->
+      buffer.push
+        config: config,
+        deferred: deferred
+    # Retries all the buffered requests clears the buffer.
+    retryAll: () ->
+      buffer.forEach (bufferItem) ->
+        retryHttpRequest(bufferItem.config, bufferItem.deferred)
+      buffer = []
   ])

@@ -1,6 +1,7 @@
 extends layout
 
 block content
+  div(class='auth-form waiting-for-angular')
   div(data-ng-controller='ShoppingListCtrl', class='waiting-for-angular')
     ng-suggest(data-ng-confirm='confirm')
       input(type='text', data-ng-model='newItem.text', placeholder='New item')

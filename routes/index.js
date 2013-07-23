@@ -10,7 +10,7 @@ module.exports = {
     /*
      * GET home page.
      */
-    app.get('/', auth.checkAuth(), function(req, res) {
+    app.get('/', function(req, res) {
       res.render('index', {
         title: 'A Shopping List!'
       });
