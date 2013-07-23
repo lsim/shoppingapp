@@ -7,7 +7,7 @@ var listUpdater = new EventEmitter();
 
 module.exports = {
     registerEndpoints: function(app) {
-        app.get('/update-stream/:listId', auth.checkAuth, function(req, res) {
+        app.get('/update-stream/:listId', auth.checkAuth(true), function(req, res) {
             //Keep a counter, so we have an id to put on each sse
             var eventCount = 0;
 
@@ -15,13 +15,13 @@ module.exports = {
             req.socket.setTimeout(Infinity);
 
             var listId = req.params.listId;
-            console.log('sse update-stream: ' + listId);
+            console.log('sse client requested event stream for list: ' + listId);
 
-            var updateHandler = function() {
+            var updateHandler = function(newVersion) {
                 eventCount++;
 
                 res.write('id: ' + eventCount + '\n');
-                res.write('data: The list changed!\n\n');
+                res.write('data: { "id":"'+ listId + '", "version": "' + newVersion + '"}\n\n');
             };
 
             //Create a pub/sub listener for the specific list id the client is interested in
@@ -43,8 +43,8 @@ module.exports = {
         });
     },
     /*Call this when a list is updated*/
-    onListUpdate: function(listId) {
-        console.log('onListUpdate');
-        listUpdater.emit(listId);
+    onListUpdate: function(listId, newVersion) {
+        console.log('onListUpdate', listId, newVersion);
+        listUpdater.emit(listId, newVersion);
     }
 };

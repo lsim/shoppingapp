@@ -19,3 +19,7 @@ button.button {
     bottom:0;
     z-index: 10;
 }
+
+.waiting-for-angular {
+  display:none;
+}

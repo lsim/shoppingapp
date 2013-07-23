@@ -36,6 +36,10 @@ app.configure(function(){
 
   app.use(app.router);
   app.use(express.static(path.join(__dirname, 'public')));
+  app.use(function(err, req, res, next) {
+    console.log("error intercepted: ", err);
+    res.send(500, err);
+  });
 });
 
 app.configure('development', function(){

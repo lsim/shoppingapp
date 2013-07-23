@@ -1,5 +1,16 @@
 extends layout
 
 block content
-	div(data-ng-view)
+  div(data-ng-controller='ShoppingListCtrl', class='waiting-for-angular')
+    ng-suggest(data-ng-confirm='confirm')
+      input(type='text', data-ng-model='newItem.text', placeholder='New item')
+      ul(class='list suggestions')
+        li(data-ng-repeat='suggestion in suggestions')
+          a(data-ng-click='acceptSuggestion(suggesion)') {{suggestion}}
+            span(class='chevron')
 
+    a(class='button button-block', data-ng-click='addItem()', data-ng-show='newItem.text') Add
+    ul(class='list')
+      li(data-ng-repeat='item in list.items | filter:{isDeleted:false}')
+        a(data-ng-click='deleteItem(item)') {{item.text}}
+          span(class='chevron')

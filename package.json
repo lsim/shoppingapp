@@ -13,6 +13,7 @@
     "crypto": "*",
     "JQDeferred": "*",
     "bower": "*",
-    "coffee-script": "1.6.3"
+    "coffee-script": "1.6.3",
+    "underscore": "*"
   }
 }
