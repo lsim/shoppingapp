@@ -73,7 +73,7 @@ define ['app'], (app) ->
 
     $scope.getLatest = () ->
       $http.get('list').success (response) ->
-        console.log('list fetched successful', response)
+        console.log('list fetched successfully', response)
         if response.data
           serverList = response.data
           serverList.items = serverList.items.map (item) -> new ListItem(item, false)
@@ -84,7 +84,7 @@ define ['app'], (app) ->
 
     handleSse = (msg) ->
       console.log('Received sse: ', msg)
-      $scope.getLatest()
+      $scope.$apply(() -> $scope.getLatest())
 
     sseSource = null
     listenerListId = null

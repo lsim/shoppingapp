@@ -99,7 +99,7 @@
       $scope.getLatest = function() {
         return $http.get('list').success(function(response) {
           var serverList;
-          console.log('list fetched successful', response);
+          console.log('list fetched successfully', response);
           if (response.data) {
             serverList = response.data;
             serverList.items = serverList.items.map(function(item) {
@@ -115,7 +115,9 @@
       };
       handleSse = function(msg) {
         console.log('Received sse: ', msg);
-        return $scope.getLatest();
+        return $scope.$apply(function() {
+          return $scope.getLatest();
+        });
       };
       sseSource = null;
       listenerListId = null;

@@ -91,6 +91,7 @@ define(['app'], function(app) {
       };
     }]).directive('authForm', ['authAPIService', 'authService', function(authAPIService, authService) {
       return {
+        scope: {},
         controller: ['$scope', '$timeout', function($scope, $timeout) {
           function updateGroups() {
             return $scope.existingGroups = authAPIService.getGroups();

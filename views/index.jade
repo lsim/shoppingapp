@@ -3,7 +3,7 @@ extends layout
 block content
   div(data-ng-controller='ShoppingListCtrl', class='waiting-for-angular')
     ng-suggest(data-ng-confirm='confirm')
-      input(type='text', data-ng-model='newItem.text', placeholder='New item')
+      input(type='text', data-ng-model='newItem.text', placeholder='New item', autofocus)
       ul(class='list suggestions')
         li(data-ng-repeat='suggestion in suggestions')
           a(data-ng-click='acceptSuggestion(suggesion)') {{suggestion}}
