@@ -30,7 +30,7 @@ define ['app'], (app) ->
         version: listVersion
       ).then getData, getError
   ])
-  .factory('confirmService', ['$rootScope', '$q', '$timeout', ($rootScope, $q, $timeout) ->
+  .factory('confirmService', ['$rootScope', '$q', ($rootScope, $q) ->
     deferred = null
     #return/export:
     yesNoConfirm: (headline, yesNoQuestion) ->

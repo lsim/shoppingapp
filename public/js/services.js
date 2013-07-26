@@ -67,7 +67,7 @@
         };
       }
     ]).factory('confirmService', [
-      '$rootScope', '$q', '$timeout', function($rootScope, $q, $timeout) {
+      '$rootScope', '$q', function($rootScope, $q) {
         var deferred;
         deferred = null;
         return {
