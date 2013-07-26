@@ -90,20 +90,16 @@ define(['app'], function(app) {
         }
       };
     }]).directive('authForm', ['authAPIService', 'authService', function(authAPIService, authService) {
-      function hide(element) {
-        element.addClass('hidden');
-      }
-      function show(element) {
-        element.removeClass('hidden');
-      }
       return {
-        controller: ['$scope', function($scope) {
+        controller: ['$scope', '$timeout', function($scope, $timeout) {
           function updateGroups() {
             return $scope.existingGroups = authAPIService.getGroups();
           }
           function clearFields() {
             $scope.username = $scope.password = $scope.password1 = $scope.password2 = $scope.groupName = $scope.groupPassword = $scope.groupPassword1 = $scope.groupPassword2 = $scope.feedback = '';
           }
+
+          // Call setDialogMode with falsy value to hide the auth dialog entirely
           $scope.setDialogMode = function(mode) {
             $scope.feedback = '';
             $scope.dialogMode = mode;
@@ -129,7 +125,6 @@ define(['app'], function(app) {
               authService.loginConfirmed(data);
               clearFields();
             }, function(reason) {
-              console.debug('Login failed: ', reason);
               $scope.feedback = 'Login failed: ' + reason;
             });
           };
@@ -139,18 +134,19 @@ define(['app'], function(app) {
               $scope.password = password;
               $scope.setDialogMode('login');
             }, function(reason) {
-              console.debug('Registration failed: ', reason);
               $scope.feedback = 'Registration failed: ' + reason;
             });
           };
           $scope.createGroup = function(groupName, groupPassword) {
             authAPIService.createGroup(groupName, groupPassword).then(function() {
-              updateGroups().then(function(groups) {
-                $scope.selectedGroup = _.find(groups, function(group) { return group.name == groupName; });
+              updateGroups().then(function() {
+                $timeout(function() {
+                  //The following line assumes that existingGroups is set to a promise which resolves to an array of groups
+                  $scope.selectedGroup = _.find($scope.existingGroups.$$v, function(group) { return group.name == groupName; });
+                });
               });
               $scope.setDialogMode('register');
             }, function(reason) {
-              console.debug('Group creation failed: ', reason);
               $scope.feedback = 'Group creation failed: ' + reason;
             });
           };
@@ -190,15 +186,12 @@ define(['app'], function(app) {
             </div>\
           </div>",
         link: function postLink($scope, element) {
-          //hide(element);
           $scope.$on('event:auth-loginRequired', function() {
             $scope.setDialogMode('login');
-            //show(element);
           });
 
           $scope.$on('event:auth-loginConfirmed', function() {
             $scope.setDialogMode(null);
-            //hide(element);
           });
         }
       }
