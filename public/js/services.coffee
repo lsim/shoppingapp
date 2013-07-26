@@ -36,7 +36,6 @@ define ['app'], (app) ->
     yesNoConfirm: (headline, yesNoQuestion) ->
       deferred = $q.defer()
       $rootScope.$broadcast('event:confirmationRequired', {headline, yesNoQuestion})
-      #$timeout(deferred.reject, 2000)#TODO: remove/fix
       deferred.promise
 
     # Confirmation providers call this when the user has chosen
