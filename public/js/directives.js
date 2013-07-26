@@ -99,99 +99,106 @@ define(['app'], function(app) {
       return {
         controller: ['$scope', function($scope) {
           function updateGroups() {
-            $scope.existingGroups = authAPIService.getGroups();
+            return $scope.existingGroups = authAPIService.getGroups();
           }
           function clearFields() {
-            $scope.username = $scope.password = $scope.password1 = $scope.password2 = $scope.groupName = $scope.groupPassword = $scope.groupPassword1 = $scope.groupPassword2 = '';
+            $scope.username = $scope.password = $scope.password1 = $scope.password2 = $scope.groupName = $scope.groupPassword = $scope.groupPassword1 = $scope.groupPassword2 = $scope.feedback = '';
           }
-          $scope.handleHeaderClick = function() {
-            if($scope.authTask == 'login') {
-              $scope.authTask = 'register';
-              $scope.headerLinkText = 'Create group'
-            } else if($scope.authTask == 'register') {
+          $scope.setDialogMode = function(mode) {
+            $scope.feedback = '';
+            $scope.dialogMode = mode;
+            if(mode == 'register') {
+              $scope.headerTitle = 'Create user';
               updateGroups();
-              $scope.selectedGroup = null;
-              $scope.authTask = 'createGroup';
+              $scope.headerLinkText = 'Create group'
+              $scope.handleHeaderClick = function() { $scope.setDialogMode('createGroup'); };
+            } else if(mode == 'createGroup') {
+              $scope.headerTitle = 'Create group';
               $scope.headerLinkText = 'Cancel';
-            } else if(!$scope.authTask || $scope.authTask == 'createGroup') {
-              $scope.authTask = 'login'
+              $scope.handleHeaderClick = function() { $scope.setDialogMode('login'); };
+            } else if(mode == 'login') {
+              $scope.headerTitle = 'Please log in';
               $scope.headerLinkText = 'Create user';
+              $scope.handleHeaderClick = function() { $scope.setDialogMode('register'); };
             }
           };
-          // Initialize authTask and headerLinkText with a call to handleHeaderClick
-          $scope.handleHeaderClick();
+          $scope.setDialogMode(null);
+
           $scope.login = function(username, password) {
             authAPIService.login(username, password).then(function(data) {
               authService.loginConfirmed(data);
               clearFields();
             }, function(reason) {
               console.debug('Login failed: ', reason);
-              //TODO: provide feedback on failure
+              $scope.feedback = 'Login failed: ' + reason;
             });
           };
           $scope.register = function(username, password, group, groupPassword) {
             authAPIService.register(username, password, group._id, groupPassword).then(function() {
               $scope.username = username;
               $scope.password = password;
-              $scope.authTask = 'login';
+              $scope.setDialogMode('login');
             }, function(reason) {
               console.debug('Registration failed: ', reason);
-              //TODO: provide feedback on failure
+              $scope.feedback = 'Registration failed: ' + reason;
             });
           };
           $scope.createGroup = function(groupName, groupPassword) {
             authAPIService.createGroup(groupName, groupPassword).then(function() {
-              updateGroups();
-              //TODO: select created group in registration form
-              $scope.authTask = 'register';
+              updateGroups().then(function(groups) {
+                $scope.selectedGroup = _.find(groups, function(group) { return group.name == groupName; });
+              });
+              $scope.setDialogMode('register');
             }, function(reason) {
               console.debug('Group creation failed: ', reason);
-              //TODO: provide feedback on failure
+              $scope.feedback = 'Group creation failed: ' + reason;
             });
           };
         }],
         restrict: 'C',
         template:
-          "<div class='modal-dialog'>\
+          "<div class='modal-dialog' data-ng-show='dialogMode'>\
             <header class='bar-title'>\
-              <h1 class='title'>Please log in</h1>\
+              <h1 class='title'>{{headerTitle}}</h1>\
               <a ng-click='handleHeaderClick()' class='button'>{{headerLinkText}}</a>\
             </header>\
             <div class='content content-padded'>\
-              <form ng-switch='authTask'>\
+              <form ng-switch='dialogMode'>\
                 <span ng-switch-when='login'>\
-                  <input type='text' data-ng-model='userName' placeholder='Username' />\
+                  <input type='text' data-ng-model='username' placeholder='Username' autofocus />\
                   <input type='password' data-ng-model='password' placeholder='Password' />\
-                  <button type='button' ng-click='login(userName,password)' class='button button-block'>Log in</button>\
+                  <button type='button' ng-click='login(username,password)' class='button button-block'>Log in</button>\
                 </span>\
                 <span ng-switch-when='register'>\
-                  <input type='text' data-ng-model='username' placeholder='Username' />\
+                  <input type='text' data-ng-model='username' placeholder='Username' autofocus />\
                   <input type='password' data-ng-model='password1' placeholder='Password' />\
                   <input type='password' data-ng-model='password2' placeholder='Repeat password' />\
                   <label> Select your shopping group\
-                    <select data-ng-options='g.name for g in existingGroups' data-ng-model='selectedGroup' />\
+                    <select data-ng-options='g.name for g in existingGroups' data-ng-model='selectedGroup' ></select>\
                   </label>\
                   <input type='password' data-ng-model='groupPassword' placeholder='Group password' />\
-                  <button type='button' data-ng-click='register(username,password1,selectedGroup,groupPassword)' data-ng-disabled='!password1 || password1 !== password2' class='button button-block'>Create user</button>\
+                  <button type='button' data-ng-click='register(username,password1,selectedGroup,groupPassword)' class='button button-block'>Create user</button>\
                 </span>\
                 <span ng-switch-when='createGroup'>\
-                  <input type='text' data-ng-model='groupName' placeholder='Group name' />\
+                  <input type='text' data-ng-model='groupName' placeholder='Group name' autofocus />\
                   <input type='password' data-ng-model='groupPassword1' placeholder='Password' />\
                   <input type='password' data-ng-model='groupPassword2' placeholder='Repeat password' />\
-                  <button type='button' data-ng-click='createGroup(groupName, groupPassword2)' data-ng-disabled='!groupPassword1 || groupPassword1 !== groupPassword2' class='button button-block'>Log in</button>\
+                  <button type='button' data-ng-click='createGroup(groupName, groupPassword2)' data-ng-disabled='!groupPassword1 || groupPassword1 !== groupPassword2' class='button button-block'>Create group</button>\
                 </span>\
               </form>\
+              <div class='feedback'>{{feedback}}</div>\
             </div>\
           </div>",
-        link: function postLink($scope, element, attrs) {
-          hide(element);
+        link: function postLink($scope, element) {
+          //hide(element);
           $scope.$on('event:auth-loginRequired', function() {
-            $scope.authTask = 'login';
-            show(element);
+            $scope.setDialogMode('login');
+            //show(element);
           });
 
           $scope.$on('event:auth-loginConfirmed', function() {
-            hide(element);
+            $scope.setDialogMode(null);
+            //hide(element);
           });
         }
       }

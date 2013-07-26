@@ -10,15 +10,22 @@
       }
     ]).factory('authAPIService', [
       '$http', '$q', function($http, $q) {
+        var getData, getError;
+        getData = function(response) {
+          return response.data;
+        };
+        getError = function(response) {
+          return $q.reject(response.data);
+        };
         return {
           login: function(username, password) {
-            return $http.post('login2', {
+            return $http.post('login', {
               username: username,
               password: password
-            });
+            }).then(getData, getError);
           },
           getGroups: function() {
-            return $http.get('groups');
+            return $http.get('groups').then(getData, getError);
           },
           register: function(username, password, groupId, groupPassword) {
             return $http.post('register', {
@@ -26,13 +33,13 @@
               password: password,
               groupId: groupId,
               groupPassword: groupPassword
-            });
+            }).then(getData, getError);
           },
           createGroup: function(groupName, groupPassword) {
             return $http.post('groups', {
               groupName: groupName,
               groupPassword: groupPassword
-            });
+            }).then(getData, getError);
           }
         };
       }

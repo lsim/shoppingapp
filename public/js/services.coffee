@@ -17,14 +17,16 @@ define ['app'], (app) ->
   #.config(['$httpProvider', ($httpProvider) -> $httpProvider.responseInterceptors.push('authHttpInterceptor') ])
   .factory('authAPIService', ['$http', '$q', ($http, $q) ->
     #return/export:
+    getData = (response) -> response.data
+    getError = (response) -> $q.reject(response.data)
     login: (username, password) ->
-      $http.post('login2', {username, password})
+      $http.post('login', {username, password}).then getData, getError
     getGroups: () ->
-      $http.get('groups')
+      $http.get('groups').then getData, getError
     register: (username, password, groupId, groupPassword) ->
-      $http.post 'register', {username, password, groupId, groupPassword}
+      $http.post('register', {username, password, groupId, groupPassword}).then getData, getError
     createGroup: (groupName, groupPassword) ->
-      $http.post 'groups', {groupName, groupPassword}
+      $http.post('groups', {groupName, groupPassword}).then getData, getError
   ])
 
   angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer'])

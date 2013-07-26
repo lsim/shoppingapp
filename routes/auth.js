@@ -29,13 +29,6 @@ var AuthExports = {
 
   registerEndpoints: function(app) {
 
-//        var ShoppingGroupModel = require('../models/ShoppingGroup');
-
-    //var getFlashMsg = function(req) {
-    //    var flash = req.flash();
-    //    return flash.error && flash.error.length ? flash.error[0] : '';
-    //};
-
     var getHashedPassword = function(password) {
       return require('crypto').createHash('md5').update(password).digest('hex');
     };
@@ -44,52 +37,32 @@ var AuthExports = {
       return hash == getHashedPassword(password);
     };
 
-    app.get('/login', function(req, res) {
-      res.render('login', {
-        title: 'Please log in'//,
-        //flash: getFlashMsg(req)
-      });
-    });
-
-    function authenticateUser(username, password, done) {
+    function authenticateUser(username, password, next) {
       ShoppingGroupModel.findOne({ users: { $elemMatch: { userName: username }}},
         function(err, group) {
           function validLogin(group, username, password) {
             var user = null;
             group.users.forEach(function(u) { if(u && u.userName == username) user = u; });
             if(!user)
-              return done('No such user');
+              return next('No such user');
             if(user.passwordHash != require('crypto').createHash('md5').update(password).digest('hex'))
-              return done('Incorrect password');
+              return next('Incorrect password');
             return user;
           }
           if(err)
-            return done(err);
+            return next(err);
           if(!group)
-            return done('Incorrect username. Please try again');
+            return next('Incorrect username. Please try again');
 
           var user = validLogin(group, username, password);
           if(!user)
-            return done('Incorrect password. Please try again');
-          return done(null, user);
+            return next('Incorrect password. Please try again');
+          return next(null, user);
         }
       );
     }
 
-    //TODO: deprecated. Remove when auth api is working
     app.post('/login', function(req, res) {
-      var post = req.body;
-      authenticateUser(post.userName, post.password, function(err, user) {
-        if(err) {
-          res.render('login', { title: err});
-          return;
-        }
-        req.session.user_id = user._id;
-        res.redirect('/');
-      });
-    });
-
-    app.post('/login2', function(req, res) {
       var post = req.body;
       authenticateUser(post.username, post.password, function(err, user) {
         if(err) {
@@ -114,7 +87,7 @@ var AuthExports = {
     });
 
     app.post('/register', function(req, res) {
-      ShoppingGroupModel.findOne({_id: req.body.selectedGroup }, function(err, result) {
+      ShoppingGroupModel.findOne({_id: req.body.groupId }, function(err, result) {
         if(err) {
           //req.flash('error', 'Error accessing data: ' + err);
           res.redirect('/register');
@@ -127,7 +100,7 @@ var AuthExports = {
           return;
         }
 
-        if(result.users.some(function(user) { return user.userName == req.body.userName})) {
+        if(result.users.some(function(user) { return user.userName == req.body.username})) {
           //req.flash('error', 'Account already exists. Please choose another user name');
           res.redirect('/register');
           return;
@@ -139,7 +112,7 @@ var AuthExports = {
           return;
         }
 
-        result.users.push({userName: req.body.userName, passwordHash: getHashedPassword(req.body.password)});
+        result.users.push({userName: req.body.username, passwordHash: getHashedPassword(req.body.password)});
         result.save(function(err) {
           if(err) {
             //req.flash('error', 'Error saving data ' + err);
@@ -159,14 +132,14 @@ var AuthExports = {
       })
     });
 
-    app.post('/groups', function(req, res) {
+    app.post('/groups', function(req, res, next) {
       var name = req.body.groupName;
       var pass = req.body.groupPassword;
       ShoppingGroupModel.count({name: name}, function(err, count) {
         if(err)
           return next(err);
         if(count) {
-          return next({reason : 'collision'});
+          return next("A group by that name already exists.");
         }
 
         var newGroup = new ShoppingGroupModel({name: name, passwordHash: getHashedPassword(pass)});
@@ -175,40 +148,6 @@ var AuthExports = {
             return next(err);
           res.json({status: 'ok'});
         })
-      });
-    });
-
-    //TODO: deprecated: should be removed as we move to authentication API
-    app.get('/group', function(req, res) {
-      res.render('group', {
-        title: 'Create a group'
-        //flash: getFlashMsg(req)
-      });
-    });
-
-    //TODO: deprecated: should be removed as we move to authentication API
-    app.post('/group', function(req, res) {
-      ShoppingGroupModel.findOne({name: req.body.name}, function(err, results) {
-        if(err) {
-          //req.flash('error', 'Error accessing data: ' + err);
-          res.redirect('/group');
-          return;
-        }
-
-        if(results) {
-          //req.flash('error', 'Error: Group "' + req.body.name + '" already exists!');
-          res.redirect('/group');
-          return;
-        }
-
-        var model = new ShoppingGroupModel({name: req.body.name, passwordHash: getHashedPassword(req.body.password)});
-        model.save(function(err) {
-          if(err) {
-            //req.flash('error', 'Error saving data: ' + err);
-            res.redirect('/group');
-          }
-          res.redirect('/register');
-        });
       });
     });
   }
