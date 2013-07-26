@@ -4,21 +4,10 @@ define ['app'], (app) ->
     (term) ->
       $http.get('/suggest?term=' + encodeURIComponent(term))
   ])
-  #  .factory('authHttpInterceptor', ['$q', ($q) ->
-  #    success = (response) -> response
-  #    failure = (response) ->
-  #      if response.status == 401
-  #        window.location = '/'
-  #      $q.reject(response)
-  #
-  #    (promise) ->
-  #      promise.then(success, failure)
-  #  ])
-  #.config(['$httpProvider', ($httpProvider) -> $httpProvider.responseInterceptors.push('authHttpInterceptor') ])
   .factory('authAPIService', ['$http', '$q', ($http, $q) ->
-    #return/export:
     getData = (response) -> response.data
     getError = (response) -> $q.reject(response.data)
+    #return/export:
     login: (username, password) ->
       $http.post('login', {username, password}).then getData, getError
     getGroups: () ->
@@ -28,6 +17,19 @@ define ['app'], (app) ->
     createGroup: (groupName, groupPassword) ->
       $http.post('groups', {groupName, groupPassword}).then getData, getError
   ])
+    .factory('listAPIService', ['$http', '$q', ($http, $q) ->
+      getData = (response) -> response.data
+      getError = (response) -> $q.reject(response.data)
+      #return/export
+      getLatest: () -> $http.get('list').then getData, getError
+      postChanges: (listChanges, listId, listStatus, listVersion) ->
+        $http.post('list',
+          items: listChanges,
+          _id: listId,
+          status: listStatus,
+          version: listVersion
+        ).then getData, getError
+    ])
 
   angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer'])
   .factory('authService', ['$rootScope','httpBuffer', ($rootScope, httpBuffer) ->

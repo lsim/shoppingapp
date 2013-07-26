@@ -10,7 +10,7 @@
       this.text = item.text;
       return this._id = !isNew ? item._id : 'tmpId' + idCounter++;
     };
-    ShoppingListCtrl = function($scope, $http) {
+    ShoppingListCtrl = function($scope, listAPIService) {
       var handleSse, listenerListId, mergeChanges, registerForSse, sseSource;
       console.log('ShoppingListCtrl loading');
       $scope.newItem = {
@@ -55,8 +55,9 @@
           }
         };
       })();
-      $scope.postChanges = function() {
+      $scope.postChanges = function(retries) {
         var changedItems;
+        retries = typeof retries === "number" ? retries : 3;
         changedItems = $scope.list.items.filter(function(item) {
           return item.isNew || item.isDeleted;
         });
@@ -65,15 +66,17 @@
             return delete item._id;
           }
         });
-        return $http.post('list', {
-          items: changedItems,
-          _id: $scope.list._id,
-          status: $scope.list.status,
-          version: $scope.list.version
-        }).success(function(data) {
+        return listAPIService.postChanges(changedItems, $scope.list._id, $scope.list.status, $scope.list.version).then(function(data) {
           console.log('postChanges success', data);
           if (data.status === 'conflict') {
-            return console.log('Concurrency conflict detected', data);
+            console.log('Concurrency conflict detected', data);
+            if (retries === 0) {
+              return window.location.reload(true);
+            } else {
+              return $scope.getLatest().then(function() {
+                return $scope.postChanges(retries - 1);
+              });
+            }
           }
         });
       };
@@ -97,11 +100,11 @@
         return serverList.concat(newLocalItems);
       };
       $scope.getLatest = function() {
-        return $http.get('list').success(function(response) {
+        return listAPIService.getLatest().then(function(data) {
           var serverList;
-          console.log('list fetched successfully', response);
-          if (response.data) {
-            serverList = response.data;
+          console.log('list fetched successfully', data);
+          if (data) {
+            serverList = data;
             serverList.items = serverList.items.map(function(item) {
               return new ListItem(item, false);
             });
@@ -136,7 +139,7 @@
       };
       return $scope.getLatest();
     };
-    ShoppingListCtrl.$inject = ['$scope', '$http'];
+    ShoppingListCtrl.$inject = ['$scope', 'listAPIService'];
     return app.module.controller('ShoppingListCtrl', ShoppingListCtrl);
   });
 

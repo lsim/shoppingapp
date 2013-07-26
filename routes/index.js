@@ -16,20 +16,6 @@ module.exports = {
       });
     });
 
-//    function getOpenList(group, fields) {
-//      var openingList = Deferred();
-//      ShoppingListModel.findOne({ status: 'Open', ownerGroup: group._id }, fields, function(err, list) {
-//        if(err) {
-//          console.log('Error fetching shopping list from db ' + err);
-//          openingList.reject(err);
-//        } else {
-//          var model = list || new ShoppingListModel({status: 'Open', ownerGroup: group._id});
-//          openingList.resolve(model);
-//        }
-//      });
-//      return openingList.promise();
-//    }
-
     app.get('/list', auth.checkAuth(true), function(req, res, next) {
       var group = req.group;
       ShoppingListModel.findOne({ status: 'Open', ownerGroup: group._id }, function(err, list) {
@@ -37,20 +23,10 @@ module.exports = {
           console.log('Error fetching shopping list from db ', err);
           next(err);
         } else {
-          res.json({
-            data: list || new ShoppingListModel({status: 'Open', ownerGroup: group._id})
-          });
+          res.json(list || new ShoppingListModel({status: 'Open', ownerGroup: group._id}));
         }
       });
     });
-
-//    app.get('/fulljson', auth.checkAuth(true), function(req, res) {
-//      var group = req.group;
-//      getOpenList(group, 'items.text').done(function(openList) {
-//        var mappedList = openList.items.map(function(item) { return item.text; });
-//        res.json({ title: group.name, items: mappedList });
-//      }).fail(res.json);
-//    });
 
     function wrapResult(err, status, data) {
       return {

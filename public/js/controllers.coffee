@@ -7,7 +7,7 @@ define ['app'], (app) ->
     @.text = item.text
     @._id = if !isNew then item._id else 'tmpId' + idCounter++
 
-  ShoppingListCtrl = ($scope, $http) ->
+  ShoppingListCtrl = ($scope, listAPIService) ->
     console.log('ShoppingListCtrl loading')
 
     $scope.newItem =
@@ -40,20 +40,21 @@ define ['app'], (app) ->
           doDelete(item._id)
     )()
 
-    #TODO: factor $http stuff into service where it belongs
-    $scope.postChanges = () ->
+    $scope.postChanges = (retries) ->
+      retries = if typeof retries is "number" then retries else 3
       changedItems = $scope.list.items.filter (item) -> item.isNew or item.isDeleted
       changedItems.forEach (item) -> if item.isNew then delete item._id
-      $http.post('list',
-        items: changedItems,
-        _id: $scope.list._id,
-        status: $scope.list.status,
-        version: $scope.list.version
-      ).success (data) ->
+      listAPIService.postChanges(changedItems, $scope.list._id, $scope.list.status, $scope.list.version)
+      .then (data) ->
         console.log('postChanges success', data)
         if data.status == 'conflict'
           console.log('Concurrency conflict detected', data)
-        #TODO: handle failure - concurrency and otherwise
+          if retries is 0
+            window.location.reload(true)
+          else
+            $scope.getLatest().then () ->
+              $scope.postChanges(retries - 1)
+        #TODO: handle general failure
 
     mergeChanges = (localList, serverList) ->
       # Ensure that new local items remain (which don't have a namesake in the server items)
@@ -72,10 +73,10 @@ define ['app'], (app) ->
       serverList.concat(newLocalItems)
 
     $scope.getLatest = () ->
-      $http.get('list').success (response) ->
-        console.log('list fetched successfully', response)
-        if response.data
-          serverList = response.data
+      listAPIService.getLatest().then (data) ->
+        console.log('list fetched successfully', data)
+        if data
+          serverList = data
           serverList.items = serverList.items.map (item) -> new ListItem(item, false)
           if $scope.list and $scope.list.items
             serverList.items = mergeChanges $scope.list.items, serverList.items
@@ -102,5 +103,5 @@ define ['app'], (app) ->
     #Initialize with data from the server
     $scope.getLatest()
 
-  ShoppingListCtrl.$inject = ['$scope', '$http']
+  ShoppingListCtrl.$inject = ['$scope', 'listAPIService']
   app.module.controller('ShoppingListCtrl', ShoppingListCtrl)

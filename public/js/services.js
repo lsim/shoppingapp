@@ -43,6 +43,29 @@
           }
         };
       }
+    ]).factory('listAPIService', [
+      '$http', '$q', function($http, $q) {
+        var getData, getError;
+        getData = function(response) {
+          return response.data;
+        };
+        getError = function(response) {
+          return $q.reject(response.data);
+        };
+        return {
+          getLatest: function() {
+            return $http.get('list').then(getData, getError);
+          },
+          postChanges: function(listChanges, listId, listStatus, listVersion) {
+            return $http.post('list', {
+              items: listChanges,
+              _id: listId,
+              status: listStatus,
+              version: listVersion
+            }).then(getData, getError);
+          }
+        };
+      }
     ]);
     angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer']).factory('authService', [
       '$rootScope', 'httpBuffer', function($rootScope, httpBuffer) {
