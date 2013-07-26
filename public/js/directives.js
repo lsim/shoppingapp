@@ -39,54 +39,35 @@ define(['app'], function(app) {
           });
         }
       };
-    }).directive('ngConfirm', ['$compile', '$q', function($compile, $q) {
-      return {
-        restrict: 'AC',
-        replace: false,
-        scope: {
-          showConfirmModal: '=ngConfirm'
-        },
-        controller: ['$scope', function(scope) {
-          console.log('ng-confirm controller running');
-          scope.deferred = null;
-          scope.confirmTitle = '';
-          scope.confirmQuestion = '';
-          //Make available on the parent scope the function to trigger a confirmation dialog
-          scope.showConfirmModal = function(title, question) {
-            var deferred = $q.defer();
-            scope.confirmTitle = title;
-            scope.confirmQuestion = question;
-            scope.deferred = deferred;
-            scope.setupModalDom(deferred);
-            return deferred.promise;
+    }).directive('ngConfirm', ['$compile', '$q', 'confirmService', function($compile, $q, confirmService) {
+      return {//TODO: parametrize so that consumer can choose if yes or no is the default
+        restrict: 'C',
+        replace: true,
+        template:
+          "<div class='modal-dialog' data-ng-show='confirmTitle'>\
+            <header class='bar-title'>\
+                <h1 class='title'>{{confirmTitle}}</h1>\
+                <a ng-click='handleReply(false)' class='button no-bn'>No</a>\
+            </header>\
+            <div class='content content-padded'>\
+                <p>{{confirmQuestion}}</p>\
+                <a ng-click='handleReply(true)' class='yes-bn button button-block'>Yes</a>\
+            </div>\
+          </div>",
+        controller: ['$scope', function($scope) {
+          $scope.confirmTitle = '';
+          $scope.confirmQuestion = '';
+
+          $scope.handleReply = function(userSaidYes) {
+            $scope.confirmTitle = $scope.confirmQuestion = '';
+            confirmService.confirmationHandled(userSaidYes);
           };
         }],
-        link: function postLink(scope, elm) {
-          console.log('ng-confirm postLink running');
-
-          scope.setupModalDom = function(deferred) {
-            console.log('deferred changed value: ',deferred);
-            if(!deferred) return;
-            console.log('deferred changed value2');
-            var modalOverlay = angular.element(modalOverlayMarkup);
-            $compile(modalOverlay)(scope);
-            elm.append(modalOverlay);
-
-            var cleanup = function() { modalOverlay.remove(); }
-            deferred.promise.then(cleanup, cleanup);
-          };
-
-          var modalOverlayMarkup =
-            "<div class='modal-dialog' >\
-              <header class='bar-title'>\
-                  <h1 class='title'>{{confirmTitle}}</h1>\
-                  <a ng-click='deferred.reject()' class='button no-bn'>No</a>\
-              </header>\
-              <div class='content content-padded'>\
-                  <p>{{confirmQuestion}}</p>\
-                  <a ng-click='deferred.resolve()' class='yes-bn button button-block'>Yes</a>\
-              </div>\
-             </div>";
+        link: function postLink($scope, elm) {
+          $scope.$on('event:confirmationRequired', function(event, confirmationData) {
+            $scope.confirmTitle = confirmationData.headline;
+            $scope.confirmQuestion = confirmationData.yesNoQuestion;
+          });
         }
       };
     }]).directive('authForm', ['authAPIService', 'authService', function(authAPIService, authService) {

@@ -7,20 +7,16 @@ define ['app'], (app) ->
     @.text = item.text
     @._id = if !isNew then item._id else 'tmpId' + idCounter++
 
-  ShoppingListCtrl = ($scope, listAPIService) ->
-    console.log('ShoppingListCtrl loading')
+  ShoppingListCtrl = ($scope, listAPIService, confirmService) ->
 
     $scope.newItem =
       text: ''
-    #confirm will hold a function when the ng-confirm directive has run
-    $scope.confirm = null
 
     $scope.addItem = () ->
       if not $scope.newItem.text
         return
       $scope.list.items.push(new ListItem({ text: $scope.newItem.text }, true))
       $scope.newItem.text = ''
-      console.log('posting from add')
       $scope.postChanges()#Trigger asynchronous synchronization of the list with the server
 
     $scope.deleteItem = (() ->
@@ -30,14 +26,11 @@ define ['app'], (app) ->
           $scope.list.items = _.filter $scope.list.items, (item) -> item._id != itemId
         else
           deletee and deletee.isDeleted = true
-          console.log('posting from delete')
           $scope.postChanges()
       # return
       (item) ->
-        if $scope.confirm
-          $scope.confirm('Delete item?', 'Are you sure you want to delete item "' + item.text + '"?').then () -> doDelete(item._id)
-        else
-          doDelete(item._id)
+        confirmService.yesNoConfirm('Delete item?', 'Are you sure you want to delete item "' + item.text + '"?')
+        .then () -> doDelete(item._id)
     )()
 
     $scope.postChanges = (retries) ->
@@ -74,7 +67,6 @@ define ['app'], (app) ->
 
     $scope.getLatest = () ->
       listAPIService.getLatest().then (data) ->
-        console.log('list fetched successfully', data)
         if data
           serverList = data
           serverList.items = serverList.items.map (item) -> new ListItem(item, false)
@@ -103,5 +95,5 @@ define ['app'], (app) ->
     #Initialize with data from the server
     $scope.getLatest()
 
-  ShoppingListCtrl.$inject = ['$scope', 'listAPIService']
+  ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService']
   app.module.controller('ShoppingListCtrl', ShoppingListCtrl)

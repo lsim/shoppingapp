@@ -66,6 +66,31 @@
           }
         };
       }
+    ]).factory('confirmService', [
+      '$rootScope', '$q', '$timeout', function($rootScope, $q, $timeout) {
+        var deferred;
+        deferred = null;
+        return {
+          yesNoConfirm: function(headline, yesNoQuestion) {
+            deferred = $q.defer();
+            $rootScope.$broadcast('event:confirmationRequired', {
+              headline: headline,
+              yesNoQuestion: yesNoQuestion
+            });
+            return deferred.promise;
+          },
+          confirmationHandled: function(userSaidYes) {
+            if (!deferred) {
+              return;
+            }
+            if (userSaidYes) {
+              return deferred.resolve();
+            } else {
+              return deferred.reject();
+            }
+          }
+        };
+      }
     ]);
     angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer']).factory('authService', [
       '$rootScope', 'httpBuffer', function($rootScope, httpBuffer) {

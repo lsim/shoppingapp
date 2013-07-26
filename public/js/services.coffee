@@ -17,19 +17,36 @@ define ['app'], (app) ->
     createGroup: (groupName, groupPassword) ->
       $http.post('groups', {groupName, groupPassword}).then getData, getError
   ])
-    .factory('listAPIService', ['$http', '$q', ($http, $q) ->
-      getData = (response) -> response.data
-      getError = (response) -> $q.reject(response.data)
-      #return/export
-      getLatest: () -> $http.get('list').then getData, getError
-      postChanges: (listChanges, listId, listStatus, listVersion) ->
-        $http.post('list',
-          items: listChanges,
-          _id: listId,
-          status: listStatus,
-          version: listVersion
-        ).then getData, getError
-    ])
+  .factory('listAPIService', ['$http', '$q', ($http, $q) ->
+    getData = (response) -> response.data
+    getError = (response) -> $q.reject(response.data)
+    #return/export
+    getLatest: () -> $http.get('list').then getData, getError
+    postChanges: (listChanges, listId, listStatus, listVersion) ->
+      $http.post('list',
+        items: listChanges,
+        _id: listId,
+        status: listStatus,
+        version: listVersion
+      ).then getData, getError
+  ])
+  .factory('confirmService', ['$rootScope', '$q', '$timeout', ($rootScope, $q, $timeout) ->
+    deferred = null
+    #return/export:
+    yesNoConfirm: (headline, yesNoQuestion) ->
+      deferred = $q.defer()
+      $rootScope.$broadcast('event:confirmationRequired', {headline, yesNoQuestion})
+      #$timeout(deferred.reject, 2000)#TODO: remove/fix
+      deferred.promise
+
+    # Confirmation providers call this when the user has chosen
+    confirmationHandled: (userSaidYes) ->
+      if !deferred then return
+      if userSaidYes
+        deferred.resolve()
+      else
+        deferred.reject()
+  ])
 
   angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer'])
   .factory('authService', ['$rootScope','httpBuffer', ($rootScope, httpBuffer) ->

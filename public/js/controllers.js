@@ -10,13 +10,11 @@
       this.text = item.text;
       return this._id = !isNew ? item._id : 'tmpId' + idCounter++;
     };
-    ShoppingListCtrl = function($scope, listAPIService) {
+    ShoppingListCtrl = function($scope, listAPIService, confirmService) {
       var handleSse, listenerListId, mergeChanges, registerForSse, sseSource;
-      console.log('ShoppingListCtrl loading');
       $scope.newItem = {
         text: ''
       };
-      $scope.confirm = null;
       $scope.addItem = function() {
         if (!$scope.newItem.text) {
           return;
@@ -25,7 +23,6 @@
           text: $scope.newItem.text
         }, true));
         $scope.newItem.text = '';
-        console.log('posting from add');
         return $scope.postChanges();
       };
       $scope.deleteItem = (function() {
@@ -41,18 +38,13 @@
             });
           } else {
             deletee && (deletee.isDeleted = true);
-            console.log('posting from delete');
             return $scope.postChanges();
           }
         };
         return function(item) {
-          if ($scope.confirm) {
-            return $scope.confirm('Delete item?', 'Are you sure you want to delete item "' + item.text + '"?').then(function() {
-              return doDelete(item._id);
-            });
-          } else {
+          return confirmService.yesNoConfirm('Delete item?', 'Are you sure you want to delete item "' + item.text + '"?').then(function() {
             return doDelete(item._id);
-          }
+          });
         };
       })();
       $scope.postChanges = function(retries) {
@@ -102,7 +94,6 @@
       $scope.getLatest = function() {
         return listAPIService.getLatest().then(function(data) {
           var serverList;
-          console.log('list fetched successfully', data);
           if (data) {
             serverList = data;
             serverList.items = serverList.items.map(function(item) {
@@ -139,7 +130,7 @@
       };
       return $scope.getLatest();
     };
-    ShoppingListCtrl.$inject = ['$scope', 'listAPIService'];
+    ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService'];
     return app.module.controller('ShoppingListCtrl', ShoppingListCtrl);
   });
 
