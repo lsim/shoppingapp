@@ -17,9 +17,15 @@ define ['app'], (app) ->
     createGroup: (groupName, groupPassword) ->
       $http.post('groups', {groupName, groupPassword}).then getData, getError
   ])
-  .factory('listAPIService', ['$http', '$q', ($http, $q) ->
+  .factory('listAPIService', ['$http', '$q', '$rootScope', 'connectivityService', ($http, $q, $rootScope) ->
     getData = (response) -> response.data
     getError = (response) -> $q.reject(response.data)
+    sseListeners = []
+    handleSse = (msg) ->
+      event = JSON.parse(msg.data)
+      console.log('Received list event: ', event)
+      $rootScope.$apply () -> $rootScope.$broadcast('event:listChange', event)
+
     #return/export
     getLatest: () -> $http.get('list').then getData, getError
     postChanges: (listChanges, listId, listStatus, listVersion) ->
@@ -35,6 +41,22 @@ define ['app'], (app) ->
     addItems: (items, listId, listVersion) ->
       $http.post('list/' + listId + '/' + listVersion + '/item', items)
       .then getData, getError
+    registerForSse: (listId) ->
+      sseListener = _.find(sseListeners, (listener) -> listener.listId == listId)
+      if sseListener then return
+      sseListener =
+        listId: listId
+        sseSource: null
+      sseListeners.push(sseListener)
+      sseListener.sseSource = new EventSource('/update-stream/' + listId)
+      sseListener.sseSource.addEventListener('message', handleSse)
+      sseListener.sseSource.onmessage = (e) ->
+        console.debug('sse: onmessage fired with argument ', e)
+    unregisterForSse: (listId) ->
+      sseListener = _.find(sseListeners, (listener) -> listener.listId == listId)
+      if not sseListener then return
+      sseListener.sseSource.close();
+      sseListeners = _.without sseListeners, sseListener
   ])
   .factory('confirmService', ['$rootScope', '$q', ($rootScope, $q) ->
     deferred = null
@@ -52,7 +74,42 @@ define ['app'], (app) ->
       else
         deferred.reject()
   ])
+  .factory('connectivityService', ['$rootScope', ($rootScope) ->
+    $rootScope.isOnline = true
+    window.addEventListener 'offline', () ->
+      $rootScope.$apply () -> $rootScope.isOnline = false
+    window.addEventListener 'online', () ->
+      $rootScope.$apply () -> $rootScope.isOnline = true
+  ])
+  .factory('visibilityService', ['$rootScope', ($rootScope) ->
+    $rootScope.isVisible = true
 
+    hidden = "hidden";
+
+    # Standards:
+    if document.hasOwnProperty(hidden)
+      document.addEventListener("visibilitychange", onchange)
+    else if document.hasOwnProperty(hidden = "mozHidden")
+      document.addEventListener("mozvisibilitychange", onchange)
+    else if document.hasOwnProperty(hidden = "webkitHidden")
+      document.addEventListener("webkitvisibilitychange", onchange)
+    else if document.hasOwnProperty(hidden = "msHidden")
+      document.addEventListener("msvisibilitychange", onchange)
+    else
+      window.onpageshow = window.onpagehide = window.onfocus = window.onblur = onchange
+
+    onchange = (evt) ->
+      console.debug('visibility event fired!', evt)
+      v = 'visible'
+      h = 'hidden'
+      evtMap =
+        focus:v, focusin:v, pageshow:v, blur:h, focusout:h, pagehide:h
+
+      evt = evt || window.event;
+      console.debug('page is now ', evtMap[evt.type], evt)
+      $rootScope.$apply () ->
+        $rootScope.isVisible = evtMap[evt.type] == 'visible'
+  ])
   angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer'])
   .factory('authService', ['$rootScope','httpBuffer', ($rootScope, httpBuffer) ->
     # call this function to indicate that authentication was successfull and trigger a

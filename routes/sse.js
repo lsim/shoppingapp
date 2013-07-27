@@ -21,7 +21,7 @@ module.exports = {
                 eventCount++;
                 console.log('sending update to client regarding list version ' + newVersion);
                 res.write('id: ' + eventCount + '\n');
-                res.write('data: { "id":"'+ listId + '", "version": "' + newVersion + '"}\n\n');
+                res.write('data: { "listId":"'+ listId + '", "version": "' + newVersion + '"}\n\n');
             };
 
             //Create a pub/sub listener for the specific list id the client is interested in

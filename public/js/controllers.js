@@ -9,8 +9,8 @@
       this.text = item.text;
       return this._id = !isNew ? item._id : 'tmpId' + idCounter++;
     };
-    ShoppingListCtrl = function($scope, listAPIService, confirmService, $timeout) {
-      var handleSse, listenerListId, mergeChanges, registerForSse, sendNewItems, sendPendingDeletions, sseSource;
+    ShoppingListCtrl = function($scope, listAPIService, confirmService) {
+      var mergeChanges, sendNewItems, sendPendingDeletions;
       $scope.newItem = {
         text: ''
       };
@@ -98,35 +98,36 @@
               serverList.items = mergeChanges($scope.list.items, serverList.items);
             }
             $scope.list = serverList;
-            registerForSse($scope.list._id);
+            listAPIService.registerForSse($scope.list._id);
             return sendNewItems() || sendPendingDeletions();
           }
         });
       };
-      handleSse = function(msg) {
-        console.log('Received sse: ', msg);
-        return $scope.$apply(function() {
-          return $scope.getLatest();
-        });
-      };
-      sseSource = null;
-      listenerListId = null;
-      registerForSse = function(listId) {
-        if (listId === listenerListId) {
+      $scope.$on('event:listChange', function(event, data) {
+        var _ref;
+        if (((_ref = $scope.list) != null ? _ref._id : void 0) !== data.listId) {
           return;
         }
-        if (sseSource) {
-          console.log('Unregistering old listener');
-          sseSource.removeEventListener('message', handleSse);
+        return $scope.getLatest();
+      });
+      $scope.$watch('isOnline', function(newValue) {
+        if (typeof newValue === !"boolean") {
+          return;
         }
-        console.log('Registering new listener');
-        sseSource = new EventSource('/update-stream/' + listId);
-        listenerListId = listId;
-        return sseSource.addEventListener('message', handleSse, false);
-      };
-      return $scope.getLatest();
+        console.debug('Responsing to new isOnline value: ', newValue);
+        if (newValue) {
+          return $scope.getLatest();
+        } else {
+          return listAPIService.unregisterForSse($scope.list._id);
+        }
+      });
+      return $scope.$watch('isVisible', function(newValue) {
+        if (newValue) {
+          return $scope.getLatest();
+        }
+      });
     };
-    ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService', '$timeout'];
+    ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService', '$timeout', 'visibilityService'];
     return app.module.controller('ShoppingListCtrl', ShoppingListCtrl);
   });
 

@@ -44,13 +44,22 @@
         };
       }
     ]).factory('listAPIService', [
-      '$http', '$q', function($http, $q) {
-        var getData, getError;
+      '$http', '$q', '$rootScope', 'connectivityService', function($http, $q, $rootScope) {
+        var getData, getError, handleSse, sseListeners;
         getData = function(response) {
           return response.data;
         };
         getError = function(response) {
           return $q.reject(response.data);
+        };
+        sseListeners = [];
+        handleSse = function(msg) {
+          var event;
+          event = JSON.parse(msg.data);
+          console.log('Received list event: ', event);
+          return $rootScope.$apply(function() {
+            return $rootScope.$broadcast('event:listChange', event);
+          });
         };
         return {
           getLatest: function() {
@@ -69,6 +78,36 @@
           },
           addItems: function(items, listId, listVersion) {
             return $http.post('list/' + listId + '/' + listVersion + '/item', items).then(getData, getError);
+          },
+          registerForSse: function(listId) {
+            var sseListener;
+            sseListener = _.find(sseListeners, function(listener) {
+              return listener.listId === listId;
+            });
+            if (sseListener) {
+              return;
+            }
+            sseListener = {
+              listId: listId,
+              sseSource: null
+            };
+            sseListeners.push(sseListener);
+            sseListener.sseSource = new EventSource('/update-stream/' + listId);
+            sseListener.sseSource.addEventListener('message', handleSse);
+            return sseListener.sseSource.onmessage = function(e) {
+              return console.debug('sse: onmessage fired with argument ', e);
+            };
+          },
+          unregisterForSse: function(listId) {
+            var sseListener;
+            sseListener = _.find(sseListeners, function(listener) {
+              return listener.listId === listId;
+            });
+            if (!sseListener) {
+              return;
+            }
+            sseListener.sseSource.close();
+            return sseListeners = _.without(sseListeners, sseListener);
           }
         };
       }
@@ -95,6 +134,56 @@
               return deferred.reject();
             }
           }
+        };
+      }
+    ]).factory('connectivityService', [
+      '$rootScope', function($rootScope) {
+        $rootScope.isOnline = true;
+        window.addEventListener('offline', function() {
+          return $rootScope.$apply(function() {
+            return $rootScope.isOnline = false;
+          });
+        });
+        return window.addEventListener('online', function() {
+          return $rootScope.$apply(function() {
+            return $rootScope.isOnline = true;
+          });
+        });
+      }
+    ]).factory('visibilityService', [
+      '$rootScope', function($rootScope) {
+        var hidden, onchange;
+        $rootScope.isVisible = true;
+        hidden = "hidden";
+        if (document.hasOwnProperty(hidden)) {
+          document.addEventListener("visibilitychange", onchange);
+        } else if (document.hasOwnProperty(hidden = "mozHidden")) {
+          document.addEventListener("mozvisibilitychange", onchange);
+        } else if (document.hasOwnProperty(hidden = "webkitHidden")) {
+          document.addEventListener("webkitvisibilitychange", onchange);
+        } else if (document.hasOwnProperty(hidden = "msHidden")) {
+          document.addEventListener("msvisibilitychange", onchange);
+        } else {
+          window.onpageshow = window.onpagehide = window.onfocus = window.onblur = onchange;
+        }
+        return onchange = function(evt) {
+          var evtMap, h, v;
+          console.debug('visibility event fired!', evt);
+          v = 'visible';
+          h = 'hidden';
+          evtMap = {
+            focus: v,
+            focusin: v,
+            pageshow: v,
+            blur: h,
+            focusout: h,
+            pagehide: h
+          };
+          evt = evt || window.event;
+          console.debug('page is now ', evtMap[evt.type], evt);
+          return $rootScope.$apply(function() {
+            return $rootScope.isVisible = evtMap[evt.type] === 'visible';
+          });
         };
       }
     ]);

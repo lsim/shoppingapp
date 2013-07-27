@@ -6,7 +6,7 @@ define ['app'], (app) ->
     @.text = item.text
     @._id = if !isNew then item._id else 'tmpId' + idCounter++
 
-  ShoppingListCtrl = ($scope, listAPIService, confirmService, $timeout) ->
+  ShoppingListCtrl = ($scope, listAPIService, confirmService) ->
 
     $scope.newItem =
       text: ''
@@ -64,6 +64,7 @@ define ['app'], (app) ->
       serverList.concat(newLocalItems)
 
     $scope.getLatest = () ->
+      #TODO: ignore calls to this function that come in while a request is still pending
       listAPIService.getLatest().then (data) ->
         if data
           console.debug('Received fresh list ', data)
@@ -72,29 +73,25 @@ define ['app'], (app) ->
           if $scope.list and $scope.list.items
             serverList.items = mergeChanges $scope.list.items, serverList.items
           $scope.list = serverList
-          registerForSse($scope.list._id)
-          # Trigger synch of pending changes
+          listAPIService.registerForSse($scope.list._id)
+          # Trigger synch of pending changes (if there are any)
           sendNewItems() or sendPendingDeletions()
 
-    handleSse = (msg) ->
-      console.log('Received sse: ', msg)
-      $scope.$apply(() -> $scope.getLatest())
+    $scope.$on 'event:listChange', (event, data) ->
+      if $scope.list?._id != data.listId then return
+      $scope.getLatest()
 
-    sseSource = null
-    listenerListId = null
-    registerForSse = (listId) ->
-      if listId == listenerListId
-        return
-      if sseSource
-        console.log('Unregistering old listener')
-        sseSource.removeEventListener('message', handleSse)
-      console.log('Registering new listener')
-      sseSource = new EventSource('/update-stream/' + listId)
-      listenerListId = listId
-      sseSource.addEventListener('message', handleSse, false)
+    $scope.$watch 'isOnline', (newValue) ->
+      if typeof newValue is not "boolean" then return
+      console.debug('Responsing to new isOnline value: ', newValue)
+      if newValue
+        $scope.getLatest()
+      else
+        listAPIService.unregisterForSse($scope.list._id)
 
-    #Initialize with data from the server
-    $scope.getLatest()
+    $scope.$watch 'isVisible', (newValue) ->
+      if newValue
+        $scope.getLatest()
 
-  ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService', '$timeout']
+  ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService', '$timeout', 'visibilityService']
   app.module.controller('ShoppingListCtrl', ShoppingListCtrl)
