@@ -63,6 +63,12 @@
               status: listStatus,
               version: listVersion
             }).then(getData, getError);
+          },
+          deleteItems: function(itemIds, listId, listVersion) {
+            return $http["delete"]('list/' + listId + '/' + listVersion + '/item/' + itemIds.join(',')).then(getData, getError);
+          },
+          addItems: function(items, listId, listVersion) {
+            return $http.post('list/' + listId + '/' + listVersion + '/item', items).then(getData, getError);
           }
         };
       }

@@ -4,16 +4,17 @@ block content
   div(data-ng-controller='ShoppingListCtrl', class='waiting-for-angular')
     ng-suggest
       input(type='text', data-ng-model='newItem.text', placeholder='New item', autofocus)
-      ul(class='list suggestions')
+      ul(class='list suggestions', data-ng-show='newItem.text')
         li(data-ng-repeat='suggestion in suggestions')
           a(data-ng-click='acceptSuggestion(suggesion)') {{suggestion}}
             span(class='chevron')
 
     a(class='button button-block', data-ng-click='addItem()', data-ng-show='newItem.text') Add
     ul(class='list')
-      li(data-ng-repeat='item in list.items | filter:{isDeleted:false}')
+      li(data-ng-repeat='item in list.items | filter:deletionFilter')
         a(data-ng-click='deleteItem(item)') {{item.text}}
           span(class='chevron')
+    button(data-ng-click='getLatest()', class='button button-block') Catch up!
 
 block dialogs
   div(class='auth-form waiting-for-angular')

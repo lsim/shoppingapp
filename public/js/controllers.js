@@ -6,14 +6,16 @@
     idCounter = 0;
     ListItem = function(item, isNew) {
       this.isNew = isNew;
-      this.isDeleted = false;
       this.text = item.text;
       return this._id = !isNew ? item._id : 'tmpId' + idCounter++;
     };
-    ShoppingListCtrl = function($scope, listAPIService, confirmService) {
-      var handleSse, listenerListId, mergeChanges, registerForSse, sseSource;
+    ShoppingListCtrl = function($scope, listAPIService, confirmService, $timeout) {
+      var handleSse, listenerListId, mergeChanges, registerForSse, sendNewItems, sendPendingDeletions, sseSource;
       $scope.newItem = {
         text: ''
+      };
+      $scope.deletionFilter = function(item) {
+        return !item.isDeleted;
       };
       $scope.addItem = function() {
         if (!$scope.newItem.text) {
@@ -23,55 +25,47 @@
           text: $scope.newItem.text
         }, true));
         $scope.newItem.text = '';
-        return $scope.postChanges();
+        return sendNewItems();
+      };
+      sendPendingDeletions = function() {
+        var deletees;
+        deletees = _.filter($scope.list.items, function(item) {
+          return item.isDeleted;
+        });
+        return deletees.length && listAPIService.deleteItems(deletees.map(function(item) {
+          return item._id;
+        }), $scope.list._id, $scope.list.version);
+      };
+      sendNewItems = function() {
+        var newItems;
+        newItems = _.filter($scope.list.items, function(item) {
+          return item.isNew;
+        }).map(function(item) {
+          return {
+            text: item.text
+          };
+        });
+        return newItems.length && listAPIService.addItems(newItems, $scope.list._id, $scope.list.version);
       };
       $scope.deleteItem = (function() {
         var doDelete;
-        doDelete = function(itemId) {
-          var deletee;
-          deletee = _.find($scope.list.items, function(item) {
-            return item._id === itemId;
-          });
-          if (deletee && deletee.isNew) {
+        doDelete = function(deletee) {
+          if (deletee.isNew) {
             return $scope.list.items = _.filter($scope.list.items, function(item) {
               return item._id !== itemId;
             });
           } else {
-            deletee && (deletee.isDeleted = true);
-            return $scope.postChanges();
+            deletee.isDeleted = true;
+            console.debug('isDeleted set to true on item,items,phase ', deletee, $scope.list.items, $scope.$$phase);
+            return sendPendingDeletions();
           }
         };
         return function(item) {
           return confirmService.yesNoConfirm('Delete item?', 'Are you sure you want to delete item "' + item.text + '"?').then(function() {
-            return doDelete(item._id);
+            return doDelete(item);
           });
         };
       })();
-      $scope.postChanges = function(retries) {
-        var changedItems;
-        retries = typeof retries === "number" ? retries : 3;
-        changedItems = $scope.list.items.filter(function(item) {
-          return item.isNew || item.isDeleted;
-        });
-        changedItems.forEach(function(item) {
-          if (item.isNew) {
-            return delete item._id;
-          }
-        });
-        return listAPIService.postChanges(changedItems, $scope.list._id, $scope.list.status, $scope.list.version).then(function(data) {
-          console.log('postChanges success', data);
-          if (data.status === 'conflict') {
-            console.log('Concurrency conflict detected', data);
-            if (retries === 0) {
-              return window.location.reload(true);
-            } else {
-              return $scope.getLatest().then(function() {
-                return $scope.postChanges(retries - 1);
-              });
-            }
-          }
-        });
-      };
       mergeChanges = function(localList, serverList) {
         var deletedLocalItems, newLocalItems;
         newLocalItems = _.filter(localList, function(localItem) {
@@ -95,6 +89,7 @@
         return listAPIService.getLatest().then(function(data) {
           var serverList;
           if (data) {
+            console.debug('Received fresh list ', data);
             serverList = data;
             serverList.items = serverList.items.map(function(item) {
               return new ListItem(item, false);
@@ -103,7 +98,8 @@
               serverList.items = mergeChanges($scope.list.items, serverList.items);
             }
             $scope.list = serverList;
-            return registerForSse($scope.list._id);
+            registerForSse($scope.list._id);
+            return sendNewItems() || sendPendingDeletions();
           }
         });
       };
@@ -130,7 +126,7 @@
       };
       return $scope.getLatest();
     };
-    ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService'];
+    ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService', '$timeout'];
     return app.module.controller('ShoppingListCtrl', ShoppingListCtrl);
   });
 

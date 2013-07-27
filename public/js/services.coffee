@@ -29,6 +29,12 @@ define ['app'], (app) ->
         status: listStatus,
         version: listVersion
       ).then getData, getError
+    deleteItems: (itemIds, listId, listVersion) ->
+      $http.delete('list/' + listId + '/' + listVersion + '/item/' + itemIds.join(','))
+      .then getData, getError
+    addItems: (items, listId, listVersion) ->
+      $http.post('list/' + listId + '/' + listVersion + '/item', items)
+      .then getData, getError
   ])
   .factory('confirmService', ['$rootScope', '$q', ($rootScope, $q) ->
     deferred = null

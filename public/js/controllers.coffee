@@ -3,77 +3,78 @@ define ['app'], (app) ->
   idCounter = 0
   ListItem = (item, isNew) ->
     @.isNew = isNew
-    @.isDeleted = false
     @.text = item.text
     @._id = if !isNew then item._id else 'tmpId' + idCounter++
 
-  ShoppingListCtrl = ($scope, listAPIService, confirmService) ->
+  ShoppingListCtrl = ($scope, listAPIService, confirmService, $timeout) ->
 
     $scope.newItem =
       text: ''
+
+    $scope.deletionFilter = (item) -> !item.isDeleted
 
     $scope.addItem = () ->
       if not $scope.newItem.text
         return
       $scope.list.items.push(new ListItem({ text: $scope.newItem.text }, true))
       $scope.newItem.text = ''
-      $scope.postChanges()#Trigger asynchronous synchronization of the list with the server
+      sendNewItems()
+
+    sendPendingDeletions = () ->
+      deletees = _.filter($scope.list.items, (item) -> item.isDeleted)
+      deletees.length and listAPIService.deleteItems(deletees.map((item) -> item._id), $scope.list._id, $scope.list.version)
+
+    sendNewItems = () ->
+      newItems = _.filter($scope.list.items, (item) -> item.isNew).map (item) -> text: item.text
+      newItems.length and listAPIService.addItems newItems, $scope.list._id, $scope.list.version
 
     $scope.deleteItem = (() ->
-      doDelete = (itemId) ->
-        deletee = _.find($scope.list.items, (item) -> item._id == itemId)
-        if deletee and deletee.isNew
+      doDelete = (deletee) ->
+        if deletee.isNew
           $scope.list.items = _.filter $scope.list.items, (item) -> item._id != itemId
         else
-          deletee and deletee.isDeleted = true
-          $scope.postChanges()
+          deletee.isDeleted = true
+          console.debug('isDeleted set to true on item,items,phase ', deletee, $scope.list.items, $scope.$$phase)
+          sendPendingDeletions()
       # return
       (item) ->
         confirmService.yesNoConfirm('Delete item?', 'Are you sure you want to delete item "' + item.text + '"?')
-        .then () -> doDelete(item._id)
+        .then () -> doDelete(item)
     )()
-
-    $scope.postChanges = (retries) ->
-      retries = if typeof retries is "number" then retries else 3
-      changedItems = $scope.list.items.filter (item) -> item.isNew or item.isDeleted
-      changedItems.forEach (item) -> if item.isNew then delete item._id
-      listAPIService.postChanges(changedItems, $scope.list._id, $scope.list.status, $scope.list.version)
-      .then (data) ->
-        console.log('postChanges success', data)
-        if data.status == 'conflict'
-          console.log('Concurrency conflict detected', data)
-          if retries is 0
-            window.location.reload(true)
-          else
-            $scope.getLatest().then () ->
-              $scope.postChanges(retries - 1)
-        #TODO: handle general failure
 
     mergeChanges = (localList, serverList) ->
       # Ensure that new local items remain (which don't have a namesake in the server items)
+      # Ensure that locally deleted items received from the server get marked as deleted
+
+      # Identify added items that are not in the data received from the server
       newLocalItems = _.filter localList, (localItem) ->
         localItem.isNew and !_.some serverList, (serverItem) ->
           serverItem.text == localItem.text
-      # Ensure that locally deleted items received from the server get marked as deleted
+      # Identify deleted items
       deletedLocalItems = _.filter localList, (localItem) ->
         localItem.isDeleted
 
+      # Find items in the server list that are marked as deleted locally and mark them
       serverList.filter((item) ->
         _.some deletedLocalItems, (deletedItem) ->
           item._id == deletedItem._id
-      ).forEach (item) -> item.isDeleted = true
-
+      ).forEach (item) ->
+        item.isDeleted = true
+      # Add new local items to the server list
       serverList.concat(newLocalItems)
 
     $scope.getLatest = () ->
       listAPIService.getLatest().then (data) ->
         if data
+          console.debug('Received fresh list ', data)
           serverList = data
           serverList.items = serverList.items.map (item) -> new ListItem(item, false)
           if $scope.list and $scope.list.items
             serverList.items = mergeChanges $scope.list.items, serverList.items
           $scope.list = serverList
           registerForSse($scope.list._id)
+          # Trigger synch of pending changes
+          sendNewItems() or sendPendingDeletions()
 
     handleSse = (msg) ->
       console.log('Received sse: ', msg)
@@ -95,5 +96,5 @@ define ['app'], (app) ->
     #Initialize with data from the server
     $scope.getLatest()
 
-  ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService']
+  ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService', '$timeout']
   app.module.controller('ShoppingListCtrl', ShoppingListCtrl)

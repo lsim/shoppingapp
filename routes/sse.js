@@ -19,7 +19,7 @@ module.exports = {
 
             var updateHandler = function(newVersion) {
                 eventCount++;
-
+                console.log('sending update to client regarding list version ' + newVersion);
                 res.write('id: ' + eventCount + '\n');
                 res.write('data: { "id":"'+ listId + '", "version": "' + newVersion + '"}\n\n');
             };
