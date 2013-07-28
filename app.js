@@ -1,17 +1,7 @@
-
-/**
- * Module dependencies.
- */
-
 var express = require('express')
-  //, indexRoutes = require('./routes/index')
-  //, loginRoutes = require('./routes/auth')
   , http = require('http')
   , path = require('path')
   , mongoose = require('mongoose')
-//  , flash = require('connect-flash')
-//  , ShoppingGroupModel = require('./models/ShoppingGroup')
-//  , Deferred = require("JQDeferred");
 
 //Database setup
 mongoose.connect('localhost','shoppingdb');

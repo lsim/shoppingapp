@@ -93,7 +93,7 @@ define ['app'], (app) ->
     # Standard first - then vendor prefixed versions:
     if document.hasOwnProperty(hidden)
       document.addEventListener("visibilitychange", onchange)
-    else if document.hasOwnProperty(hidden = "mozHidden")
+    else if typeof document[hidden = "mozHidden"] == 'boolean'
       document.addEventListener("mozvisibilitychange", onchange)
     else if document.hasOwnProperty(hidden = "webkitHidden")
       document.addEventListener("webkitvisibilitychange", onchange)

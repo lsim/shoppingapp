@@ -152,7 +152,7 @@
         if (newValue) {
           $scope.getLatest();
           return showFeedback('visibility reported');
-        } else {
+        } else if ($scope.list) {
           return listAPIService.unregisterForSse($scope.list._id);
         }
       });

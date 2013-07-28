@@ -163,7 +163,7 @@
         hidden = "hidden";
         if (document.hasOwnProperty(hidden)) {
           return document.addEventListener("visibilitychange", onchange);
-        } else if (document.hasOwnProperty(hidden = "mozHidden")) {
+        } else if (typeof document[hidden = "mozHidden"] === 'boolean') {
           return document.addEventListener("mozvisibilitychange", onchange);
         } else if (document.hasOwnProperty(hidden = "webkitHidden")) {
           return document.addEventListener("webkitvisibilitychange", onchange);

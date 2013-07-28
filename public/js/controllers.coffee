@@ -111,7 +111,7 @@ define ['app'], (app) ->
       if newValue
         $scope.getLatest()
         showFeedback 'visibility reported'
-      else
+      else if $scope.list
         listAPIService.unregisterForSse($scope.list._id)
 
   ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService', '$timeout', 'visibilityService']
