@@ -20,11 +20,16 @@ module.exports = {
     app.get('/list', auth.checkAuth(true), function(req, res, next) {
       var group = req.group;
       ShoppingListModel.findOne({ status: 'Open', ownerGroup: group._id }, function(err, list) {
-        if(err) {
-          console.log('Error fetching shopping list from db ', err);
-          next(err);
+        if(err) return next(err);
+
+        if(list) {
+          return res.json(list);
         } else {
-          res.json(list || new ShoppingListModel({status: 'Open', ownerGroup: group._id}));
+          list = new ShoppingListModel({status: 'Open', ownerGroup: group._id});
+          list.save(function(err) {
+            if(err) return next(err);
+            res.json(list);
+          });
         }
       });
     });
@@ -47,6 +52,7 @@ module.exports = {
         },
         $pushAll: { items: newItems }
       };
+
       ShoppingListModel.update(query, action, function(err, numberAffected) {
         if(err) {
           console.log('Error adding items to list ', err, query, action, listVersion);

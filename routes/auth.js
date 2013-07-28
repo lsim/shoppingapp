@@ -86,40 +86,24 @@ var AuthExports = {
       });
     });
 
-    app.post('/register', function(req, res) {
+    app.post('/register', function(req, res, next) {
       ShoppingGroupModel.findOne({_id: req.body.groupId }, function(err, result) {
-        if(err) {
-          //req.flash('error', 'Error accessing data: ' + err);
-          res.redirect('/register');
-          return;
-        }
+        if(err) return next(err);
 
-        if(!result) {
-          //req.flash('error', 'No such group exists. Please try again.');
-          res.redirect('/register');
-          return;
-        }
+        if(!result) return next('No such group exists. Please try again')
 
         if(result.users.some(function(user) { return user.userName == req.body.username})) {
-          //req.flash('error', 'Account already exists. Please choose another user name');
-          res.redirect('/register');
-          return;
+          return next('Account already exists. Please choose another user name');
         }
 
         if(!comparePassword(result.passwordHash, req.body.groupPassword)) {
-          //req.flash('error', 'Group password was incorrect. Please try again.');
-          res.redirect('/register');
-          return;
+          return next('Group password was incorrect. Please try again.');
         }
 
         result.users.push({userName: req.body.username, passwordHash: getHashedPassword(req.body.password)});
         result.save(function(err) {
-          if(err) {
-            //req.flash('error', 'Error saving data ' + err);
-            res.redirect('register');
-            return;
-          }
-          res.redirect('/login');
+          if(err) return next('Error saving data: ' + err)
+          res.send('ok');
         });
       });
     });

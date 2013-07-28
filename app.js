@@ -3,8 +3,35 @@ var express = require('express')
   , path = require('path')
   , mongoose = require('mongoose')
 
+if(process.env.VCAP_SERVICES){
+  var env = JSON.parse(process.env.VCAP_SERVICES);
+  var mongo = env['mongodb-1.8'][0]['credentials'];
+} else {
+  var mongo = {
+    "hostname":"localhost",
+    "port":27017,
+    "username":"",
+    "password":"",
+    "name":"",
+    "db":"shoppingdb"
+  }
+}
+
+var generate_mongo_url = function(obj){
+  obj.hostname = (obj.hostname || 'localhost');
+  obj.port = (obj.port || 27017);
+  obj.db = (obj.db || 'test');
+  if(obj.username && obj.password){
+    return "mongodb://" + obj.username + ":" + obj.password + "@" + obj.hostname + ":" + obj.port;
+  }
+  else{
+    return "mongodb://" + obj.hostname + ":" + obj.port;
+  }
+}
+var mongourl = generate_mongo_url(mongo);
+
 //Database setup
-mongoose.connect('localhost','shoppingdb');
+mongoose.connect(mongourl);
 var db = mongoose.connection;
 db.on('error', function(msg) { console.log(msg); process.exit(1); });
 
