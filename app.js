@@ -4,6 +4,7 @@ var express = require('express')
   , mongoose = require('mongoose')
 
 if(process.env.VCAP_SERVICES){
+  // appfog handling
   var env = JSON.parse(process.env.VCAP_SERVICES);
   var mongo = env['mongodb-1.8'][0]['credentials'];
 } else {
@@ -16,7 +17,7 @@ if(process.env.VCAP_SERVICES){
     "db":"shoppingdb"
   }
 }
-
+//Builds url for localhost and appfog
 var generate_mongo_url = function(obj){
   obj.hostname = (obj.hostname || 'localhost');
   obj.port = (obj.port || 27017);
@@ -28,7 +29,7 @@ var generate_mongo_url = function(obj){
     return "mongodb://" + obj.hostname + ":" + obj.port;
   }
 }
-var mongourl = generate_mongo_url(mongo);
+var mongourl = process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || generate_mongo_url(mongo);
 
 //Database setup
 mongoose.connect(mongourl);
