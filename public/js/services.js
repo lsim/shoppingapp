@@ -154,37 +154,22 @@
       '$rootScope', function($rootScope) {
         var hidden, onchange;
         $rootScope.isVisible = true;
-        hidden = "hidden";
-        if (document.hasOwnProperty(hidden)) {
-          document.addEventListener("visibilitychange", onchange);
-        } else if (document.hasOwnProperty(hidden = "mozHidden")) {
-          document.addEventListener("mozvisibilitychange", onchange);
-        } else if (document.hasOwnProperty(hidden = "webkitHidden")) {
-          document.addEventListener("webkitvisibilitychange", onchange);
-        } else if (document.hasOwnProperty(hidden = "msHidden")) {
-          document.addEventListener("msvisibilitychange", onchange);
-        } else {
-          window.onpageshow = window.onpagehide = window.onfocus = window.onblur = onchange;
-        }
-        return onchange = function(evt) {
-          var evtMap, h, v;
-          console.debug('visibility event fired!', evt);
-          v = 'visible';
-          h = 'hidden';
-          evtMap = {
-            focus: v,
-            focusin: v,
-            pageshow: v,
-            blur: h,
-            focusout: h,
-            pagehide: h
-          };
-          evt = evt || window.event;
-          console.debug('page is now ', evtMap[evt.type], evt);
+        onchange = function() {
+          console.debug('visibility event fired!');
           return $rootScope.$apply(function() {
-            return $rootScope.isVisible = evtMap[evt.type] === 'visible';
+            return $rootScope.isVisible = !document[hidden];
           });
         };
+        hidden = "hidden";
+        if (document.hasOwnProperty(hidden)) {
+          return document.addEventListener("visibilitychange", onchange);
+        } else if (document.hasOwnProperty(hidden = "mozHidden")) {
+          return document.addEventListener("mozvisibilitychange", onchange);
+        } else if (document.hasOwnProperty(hidden = "webkitHidden")) {
+          return document.addEventListener("webkitvisibilitychange", onchange);
+        } else if (document.hasOwnProperty(hidden = "msHidden")) {
+          return document.addEventListener("msvisibilitychange", onchange);
+        }
       }
     ]);
     angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer']).factory('authService', [

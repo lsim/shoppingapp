@@ -15,7 +15,7 @@ block content
         a(data-ng-click='deleteItem(item)') {{item.text}}
           span(class='chevron')
     button(data-ng-click='getLatest()', class='button button-block') Catch up!
-    div online? {{isOnline}}
+    div(class='feedback') online? {{isOnline && 'yes' || 'no'}} {{feedback}}
 
 block dialogs
   div(class='auth-form waiting-for-angular')

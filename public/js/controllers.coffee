@@ -6,7 +6,7 @@ define ['app'], (app) ->
     @.text = item.text
     @._id = if !isNew then item._id else 'tmpId' + idCounter++
 
-  ShoppingListCtrl = ($scope, listAPIService, confirmService) ->
+  ShoppingListCtrl = ($scope, listAPIService, confirmService, $timeout) ->
 
     $scope.newItem =
       text: ''
@@ -63,19 +63,25 @@ define ['app'], (app) ->
       # Add new local items to the server list
       serverList.concat(newLocalItems)
 
-    $scope.getLatest = () ->
-      #TODO: ignore calls to this function that come in while a request is still pending
-      listAPIService.getLatest().then (data) ->
-        if data
-          console.debug('Received fresh list ', data)
-          serverList = data
-          serverList.items = serverList.items.map (item) -> new ListItem(item, false)
-          if $scope.list and $scope.list.items
-            serverList.items = mergeChanges $scope.list.items, serverList.items
-          $scope.list = serverList
-          listAPIService.registerForSse($scope.list._id)
-          # Trigger synch of pending changes (if there are any)
-          sendNewItems() or sendPendingDeletions()
+    $scope.getLatest = (() ->
+      getLatestPending = false
+      #return
+      () ->
+        if getLatestPending then return
+        getLatestPending = true
+        listAPIService.getLatest().then (data) ->
+          if data
+            console.debug('Received fresh list ', data)
+            serverList = data
+            serverList.items = serverList.items.map (item) -> new ListItem(item, false)
+            if $scope.list and $scope.list.items
+              serverList.items = mergeChanges $scope.list.items, serverList.items
+            $scope.list = serverList
+            listAPIService.registerForSse($scope.list._id)
+            # Trigger synch of pending changes (if there are any)
+            sendNewItems() or sendPendingDeletions()
+        .then (() -> getLatestPending = false), (() -> getLatestPending = false)
+    )()
 
     $scope.$on 'event:listChange', (event, data) ->
       if $scope.list?._id != data.listId then return
@@ -83,15 +89,30 @@ define ['app'], (app) ->
 
     $scope.$watch 'isOnline', (newValue) ->
       if typeof newValue is not "boolean" then return
-      console.debug('Responsing to new isOnline value: ', newValue)
+      showFeedback 'Now ' + (if newValue then 'online' else 'offline')
+      console.debug('Responding to new isOnline value: ', newValue)
       if newValue
         $scope.getLatest()
       else
         listAPIService.unregisterForSse($scope.list._id)
 
+    showFeedback = (() ->
+      lastPromise = null
+      #return
+      (feedback) ->
+        if lastPromise then $timeout.cancel(lastPromise)
+        $scope.feedback = feedback
+        lastPromise = $timeout (() ->
+          $scope.feedback = ''
+          lastPromise = null
+        ), 5000
+    )()
     $scope.$watch 'isVisible', (newValue) ->
       if newValue
         $scope.getLatest()
+        showFeedback 'visibility reported'
+      else
+        listAPIService.unregisterForSse($scope.list._id)
 
   ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService', '$timeout', 'visibilityService']
   app.module.controller('ShoppingListCtrl', ShoppingListCtrl)

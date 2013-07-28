@@ -84,9 +84,13 @@ define ['app'], (app) ->
   .factory('visibilityService', ['$rootScope', ($rootScope) ->
     $rootScope.isVisible = true
 
-    hidden = "hidden";
+    onchange = () ->
+      console.debug('visibility event fired!')
+      $rootScope.$apply () ->
+        $rootScope.isVisible = !document[hidden]
 
-    # Standards:
+    hidden = "hidden"
+    # Standard first - then vendor prefixed versions:
     if document.hasOwnProperty(hidden)
       document.addEventListener("visibilitychange", onchange)
     else if document.hasOwnProperty(hidden = "mozHidden")
@@ -95,21 +99,8 @@ define ['app'], (app) ->
       document.addEventListener("webkitvisibilitychange", onchange)
     else if document.hasOwnProperty(hidden = "msHidden")
       document.addEventListener("msvisibilitychange", onchange)
-    else
-      window.onpageshow = window.onpagehide = window.onfocus = window.onblur = onchange
-
-    onchange = (evt) ->
-      console.debug('visibility event fired!', evt)
-      v = 'visible'
-      h = 'hidden'
-      evtMap =
-        focus:v, focusin:v, pageshow:v, blur:h, focusout:h, pagehide:h
-
-      evt = evt || window.event;
-      console.debug('page is now ', evtMap[evt.type], evt)
-      $rootScope.$apply () ->
-        $rootScope.isVisible = evtMap[evt.type] == 'visible'
   ])
+
   angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer'])
   .factory('authService', ['$rootScope','httpBuffer', ($rootScope, httpBuffer) ->
     # call this function to indicate that authentication was successfull and trigger a

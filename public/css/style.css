@@ -23,3 +23,8 @@ button.button {
 .waiting-for-angular {
   display:none;
 }
+
+.feedback {
+  color: slategray;
+  font-size: .7em;
+}

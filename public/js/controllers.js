@@ -9,8 +9,8 @@
       this.text = item.text;
       return this._id = !isNew ? item._id : 'tmpId' + idCounter++;
     };
-    ShoppingListCtrl = function($scope, listAPIService, confirmService) {
-      var mergeChanges, sendNewItems, sendPendingDeletions;
+    ShoppingListCtrl = function($scope, listAPIService, confirmService, $timeout) {
+      var mergeChanges, sendNewItems, sendPendingDeletions, showFeedback;
       $scope.newItem = {
         text: ''
       };
@@ -85,24 +85,36 @@
         });
         return serverList.concat(newLocalItems);
       };
-      $scope.getLatest = function() {
-        return listAPIService.getLatest().then(function(data) {
-          var serverList;
-          if (data) {
-            console.debug('Received fresh list ', data);
-            serverList = data;
-            serverList.items = serverList.items.map(function(item) {
-              return new ListItem(item, false);
-            });
-            if ($scope.list && $scope.list.items) {
-              serverList.items = mergeChanges($scope.list.items, serverList.items);
-            }
-            $scope.list = serverList;
-            listAPIService.registerForSse($scope.list._id);
-            return sendNewItems() || sendPendingDeletions();
+      $scope.getLatest = (function() {
+        var getLatestPending;
+        getLatestPending = false;
+        return function() {
+          if (getLatestPending) {
+            return;
           }
-        });
-      };
+          getLatestPending = true;
+          return listAPIService.getLatest().then(function(data) {
+            var serverList;
+            if (data) {
+              console.debug('Received fresh list ', data);
+              serverList = data;
+              serverList.items = serverList.items.map(function(item) {
+                return new ListItem(item, false);
+              });
+              if ($scope.list && $scope.list.items) {
+                serverList.items = mergeChanges($scope.list.items, serverList.items);
+              }
+              $scope.list = serverList;
+              listAPIService.registerForSse($scope.list._id);
+              return sendNewItems() || sendPendingDeletions();
+            }
+          }).then((function() {
+            return getLatestPending = false;
+          }), (function() {
+            return getLatestPending = false;
+          }));
+        };
+      })();
       $scope.$on('event:listChange', function(event, data) {
         var _ref;
         if (((_ref = $scope.list) != null ? _ref._id : void 0) !== data.listId) {
@@ -114,16 +126,34 @@
         if (typeof newValue === !"boolean") {
           return;
         }
-        console.debug('Responsing to new isOnline value: ', newValue);
+        showFeedback('Now ' + (newValue ? 'online' : 'offline'));
+        console.debug('Responding to new isOnline value: ', newValue);
         if (newValue) {
           return $scope.getLatest();
         } else {
           return listAPIService.unregisterForSse($scope.list._id);
         }
       });
+      showFeedback = (function() {
+        var lastPromise;
+        lastPromise = null;
+        return function(feedback) {
+          if (lastPromise) {
+            $timeout.cancel(lastPromise);
+          }
+          $scope.feedback = feedback;
+          return lastPromise = $timeout((function() {
+            $scope.feedback = '';
+            return lastPromise = null;
+          }), 5000);
+        };
+      })();
       return $scope.$watch('isVisible', function(newValue) {
         if (newValue) {
-          return $scope.getLatest();
+          $scope.getLatest();
+          return showFeedback('visibility reported');
+        } else {
+          return listAPIService.unregisterForSse($scope.list._id);
         }
       });
     };
