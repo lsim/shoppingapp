@@ -7,7 +7,7 @@ var listUpdater = new EventEmitter();
 
 module.exports = {
     registerEndpoints: function(app) {
-        app.get('/update-stream/:listId', auth.checkAuth(true), function(req, res) {
+        app.get('/update-stream/:listId', auth.checkAuth, function(req, res) {
             //Keep a counter, so we have an id to put on each sse
             var eventCount = 0;
 

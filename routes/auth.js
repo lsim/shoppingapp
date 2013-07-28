@@ -3,28 +3,22 @@ var ShoppingGroupModel = require('../models/ShoppingGroup');
 var AuthExports = {
 
   /* Security middleware for endpoints that require authentication*/
-  checkAuth: function(errOnFail) {
-    return function(req, res, next) {
-      if(!req.session.user_id) {
-        if(errOnFail) {
-          res.send(401, 'Authentication required');
-        } else {
-          res.redirect('/login');
-        }
-        return;
-      }
-      ShoppingGroupModel.findOne({users: { $elemMatch: { _id: req.session.user_id }}},
-        function(err, group) {
-          if(err) {
-            res.send(401, 'Authentication required');
-            return;
-          }
-          req.group = group;
-          res.header('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
-          next();
-        }
-      );
+  checkAuth: function(req, res, next) {
+    if(!req.session.user_id) {
+      res.send(401, 'Authentication required');
+      return;
     }
+    ShoppingGroupModel.findOne({users: { $elemMatch: { _id: req.session.user_id }}},
+      function(err, group) {
+        if(err) {
+          res.send(401, 'Authentication required');
+          return;
+        }
+        req.group = group;
+        res.header('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
+        next();
+      }
+    );
   },
 
   registerEndpoints: function(app) {

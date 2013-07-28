@@ -17,7 +17,7 @@ module.exports = {
       });
     });
 
-    app.get('/list', auth.checkAuth(true), function(req, res, next) {
+    app.get('/list', auth.checkAuth, function(req, res, next) {
       var group = req.group;
       ShoppingListModel.findOne({ status: 'Open', ownerGroup: group._id }, function(err, list) {
         if(err) return next(err);
@@ -34,11 +34,11 @@ module.exports = {
       });
     });
 
-    app.get('/suggest', auth.checkAuth(true), function(req, res) {
+    app.get('/suggest', auth.checkAuth, function(req, res) {
       res.json(['foo', 'knækbrød']);
     });
 
-    app.post('/list/:listId/:version/item', auth.checkAuth(true), function(req, res, next) {
+    app.post('/list/:listId/:version/item', auth.checkAuth, function(req, res, next) {
       var newItems = req.body;
       if(!newItems || !newItems.length)
         return res.send('ok');
@@ -66,7 +66,7 @@ module.exports = {
       });
     });
 
-    app.delete('/list/:listId/:version/item/:ids', auth.checkAuth(true), function(req, res, next) {
+    app.delete('/list/:listId/:version/item/:ids', auth.checkAuth, function(req, res, next) {
       var ids = req.params.ids.split(',');
       var listId = req.params.listId;
       var listVersion = parseInt(req.params.version, 10) || 0;
