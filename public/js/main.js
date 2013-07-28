@@ -4,8 +4,8 @@
   require.config({
     baseUrl: 'js',
     paths: {
-      underscore: 'lib/underscore/underscore',
-      angular: 'lib/angular-unstable/angular'
+      underscore: 'lib/underscore/underscore-min',
+      angular: 'lib/angular-unstable/angular.min'
     },
     shim: {}
   });
