@@ -92,7 +92,7 @@ define ['app'], (app) ->
       showFeedback 'Now ' + (if newValue then 'online' else 'offline')
       console.debug('Responding to new isOnline value: ', newValue)
       if newValue
-        $scope.getLatest()
+        $scope.getLatest()# when response is processed, sse listener will be registered
       else
         listAPIService.unregisterForSse($scope.list._id)
 

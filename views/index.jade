@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  div(data-ng-controller='ShoppingListCtrl', class='waiting-for-angular')
+  div(data-ng-controller='ShoppingListCtrl', class='ng-cloak')
     ng-suggest
       input(type='text', data-ng-model='newItem.text', placeholder='New item', autofocus)
       ul(class='list suggestions', data-ng-show='newItem.text')
@@ -18,5 +18,5 @@ block content
     div(class='feedback') online? {{isOnline && 'yes' || 'no'}} {{feedback}}
 
 block dialogs
-  div(class='auth-form waiting-for-angular')
-  div(class='ng-confirm waiting-for-angular')
+  div(class='auth-form ng-cloak')
+  div(class='ng-confirm ng-cloak')

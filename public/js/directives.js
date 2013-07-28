@@ -140,34 +140,32 @@ define(['app'], function(app) {
               <h1 class='title'>{{headerTitle}}</h1>\
               <a ng-click='handleHeaderClick()' class='button'>{{headerLinkText}}</a>\
             </header>\
-            <div class='content content-padded'>\
-              <form ng-switch='dialogMode'>\
-                <span ng-switch-when='login'>\
-                  <input type='text' data-ng-model='username' placeholder='Username' autofocus />\
-                  <input type='password' data-ng-model='password' placeholder='Password' />\
-                  <button type='button' ng-click='login(username,password)' class='button button-block'>Log in</button>\
-                </span>\
-                <span ng-switch-when='register'>\
-                  <input type='text' data-ng-model='username' placeholder='Username' autofocus />\
-                  <input type='password' data-ng-model='password1' placeholder='Password' />\
-                  <input type='password' data-ng-model='password2' placeholder='Repeat password' />\
-                  <label> Select your shopping group\
-                    <select data-ng-options='g.name for g in existingGroups' data-ng-model='selectedGroup' ></select>\
-                  </label>\
-                  <input type='password' data-ng-model='groupPassword' placeholder='Group password' />\
-                  <button type='button' data-ng-click='register(username,password1,selectedGroup,groupPassword)' class='button button-block'>Create user</button>\
-                </span>\
-                <span ng-switch-when='createGroup'>\
-                  <input type='text' data-ng-model='groupName' placeholder='Group name' autofocus />\
-                  <input type='password' data-ng-model='groupPassword1' placeholder='Password' />\
-                  <input type='password' data-ng-model='groupPassword2' placeholder='Repeat password' />\
-                  <button type='button' data-ng-click='createGroup(groupName, groupPassword2)' data-ng-disabled='!groupPassword1 || groupPassword1 !== groupPassword2' class='button button-block'>Create group</button>\
-                </span>\
+            <div class='content content-padded' data-ng-switch='dialogMode'>\
+              <form data-ng-switch-when='login' data-ng-submit='login(username,password)'>\
+                <input type='text' data-ng-model='username' placeholder='Username' autofocus />\
+                <input type='password' data-ng-model='password' placeholder='Password' />\
+                <button class='button button-block'>Log in</button>\
+              </form>\
+              <form data-ng-switch-when='register' data-ng-submit='register(username,password1,selectedGroup,groupPassword)'>\
+                <input type='text' data-ng-model='username' placeholder='Username' autofocus />\
+                <input type='password' data-ng-model='password1' placeholder='Password' />\
+                <input type='password' data-ng-model='password2' placeholder='Repeat password' />\
+                <label> Select your shopping group\
+                  <select data-ng-options='g.name for g in existingGroups' data-ng-model='selectedGroup' ></select>\
+                </label>\
+                <input type='password' data-ng-model='groupPassword' placeholder='Group password' />\
+                <button class='button button-block'>Create user</button>\
+              </form>\
+              <form data-ng-switch-when='createGroup' data-ng-submit='createGroup(groupName, groupPassword1)'>\
+                <input type='text' data-ng-model='groupName' placeholder='Group name' autofocus />\
+                <input type='password' data-ng-model='groupPassword1' placeholder='Password' />\
+                <input type='password' data-ng-model='groupPassword2' placeholder='Repeat password' />\
+                <button class='button button-block'>Create group</button>\
               </form>\
               <div class='feedback'>{{feedback}}</div>\
             </div>\
           </div>",
-        link: function postLink($scope, element) {
+        link: function postLink($scope) {
           $scope.$on('event:auth-loginRequired', function() {
             $scope.setDialogMode('login');
           });
@@ -177,14 +175,7 @@ define(['app'], function(app) {
           });
         }
       }
-    }]).directive('waitingForAngular', function() {//This one serves to remove the angular FOUC
-      return {
-        restrict: 'C',
-        link: function postLink($scope, element) {
-          element.removeClass('waiting-for-angular');
-        }
-      }
-    });
+    }]);
 
 });
 

@@ -20,7 +20,7 @@ button.button {
     z-index: 10;
 }
 
-.waiting-for-angular {
+.ng-cloak {
   display:none;
 }
 
