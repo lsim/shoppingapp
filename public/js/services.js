@@ -3,9 +3,14 @@
   'use strict';
   define(['app'], function(app) {
     app.module.factory('suggestionService', [
-      '$http', function($http) {
+      '$http', '$q', '$timeout', function($http, $q, $timeout) {
         return function(term) {
-          return $http.get('/suggest?term=' + encodeURIComponent(term));
+          var deferred;
+          deferred = $q.defer();
+          $timeout((function() {
+            return deferred.resolve([]);
+          }), 200);
+          return deferred.promise;
         };
       }
     ]).factory('authAPIService', [

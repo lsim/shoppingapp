@@ -25,7 +25,7 @@ define(['app'], function(app) {
         link: function postLink(scope, elm, attrs) {
           console.log('ng-suggest postLink running');
           scope.$watch('newItem.text', function(newVal) {
-            console.debug('ngSuggest watch triggered ', scope.newItem);
+            //console.debug('ngSuggest watch triggered ', scope.newItem);
             if(scope.ignoreTextChange) return;
             if(newVal && newVal.length > 2) {
               scope.getSuggestions(newVal).then(function(suggestions) {

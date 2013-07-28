@@ -1,8 +1,11 @@
 'use strict'
 define ['app'], (app) ->
-  app.module.factory('suggestionService', ['$http', ($http) ->
+  app.module.factory('suggestionService', ['$http', '$q', '$timeout', ($http, $q, $timeout) ->
     (term) ->
-      $http.get('/suggest?term=' + encodeURIComponent(term))
+      deferred = $q.defer()
+      $timeout (() -> deferred.resolve([])), 200
+      deferred.promise
+      #$http.get('/suggest?term=' + encodeURIComponent(term))
   ])
   .factory('authAPIService', ['$http', '$q', ($http, $q) ->
     getData = (response) -> response.data
