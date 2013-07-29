@@ -10,6 +10,8 @@ define ['app'], (app) ->
 
     $scope.newItem =
       text: ''
+    $scope.list =
+      items: []
 
     $scope.deletionFilter = (item) -> !item.isDeleted
 
@@ -21,20 +23,21 @@ define ['app'], (app) ->
       sendNewItems()
 
     sendPendingDeletions = () ->
+      if !$scope.list._id then return
       deletees = _.filter($scope.list.items, (item) -> item.isDeleted)
       deletees.length and listAPIService.deleteItems(deletees.map((item) -> item._id), $scope.list._id, $scope.list.version)
 
     sendNewItems = () ->
+      if !$scope.list._id then return
       newItems = _.filter($scope.list.items, (item) -> item.isNew).map (item) -> text: item.text
       newItems.length and listAPIService.addItems newItems, $scope.list._id, $scope.list.version
 
     $scope.deleteItem = (() ->
       doDelete = (deletee) ->
         if deletee.isNew
-          $scope.list.items = _.filter $scope.list.items, (item) -> item._id != itemId
+          $scope.list.items = _.filter $scope.list.items, (item) -> item._id != deletee._id
         else
           deletee.isDeleted = true
-          console.debug('isDeleted set to true on item,items,phase ', deletee, $scope.list.items, $scope.$$phase)
           sendPendingDeletions()
       # return
       (item) ->

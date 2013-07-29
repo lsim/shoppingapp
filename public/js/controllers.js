@@ -14,6 +14,9 @@
       $scope.newItem = {
         text: ''
       };
+      $scope.list = {
+        items: []
+      };
       $scope.deletionFilter = function(item) {
         return !item.isDeleted;
       };
@@ -29,6 +32,9 @@
       };
       sendPendingDeletions = function() {
         var deletees;
+        if (!$scope.list._id) {
+          return;
+        }
         deletees = _.filter($scope.list.items, function(item) {
           return item.isDeleted;
         });
@@ -38,6 +44,9 @@
       };
       sendNewItems = function() {
         var newItems;
+        if (!$scope.list._id) {
+          return;
+        }
         newItems = _.filter($scope.list.items, function(item) {
           return item.isNew;
         }).map(function(item) {
@@ -52,11 +61,10 @@
         doDelete = function(deletee) {
           if (deletee.isNew) {
             return $scope.list.items = _.filter($scope.list.items, function(item) {
-              return item._id !== itemId;
+              return item._id !== deletee._id;
             });
           } else {
             deletee.isDeleted = true;
-            console.debug('isDeleted set to true on item,items,phase ', deletee, $scope.list.items, $scope.$$phase);
             return sendPendingDeletions();
           }
         };

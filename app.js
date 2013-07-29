@@ -1,7 +1,8 @@
 var express = require('express')
   , http = require('http')
   , path = require('path')
-  , mongoose = require('mongoose')
+  , mongoose = require('mongoose');
+
 
 if(process.env.VCAP_SERVICES){
   // appfog handling
