@@ -17,6 +17,8 @@ block content
           span(class='chevron')
     button(data-ng-click='getLatest()', class='button button-block') Catch up!
     div(class='feedback') online? {{isOnline && 'yes' || 'no'}} {{feedback}}
+      div
+        a(href='/flush') Flush cache
 
 block dialogs
   div(class='auth-form ng-cloak')

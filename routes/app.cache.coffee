@@ -13,7 +13,10 @@ cachedFiles = [
   'js/lib/underscore/underscore-min.js'
 ]
 
-timestamp = new Date().toISOString()
+timestamp = null
+
+(updateOfflineCache = () ->
+  timestamp = new Date().toISOString())()
 
 module.exports =
   registerEndpoints: (app) ->
@@ -25,6 +28,10 @@ module.exports =
       cachedFiles.join('\n') +
       '\nNETWORK:\n*')
 
-  updateOfflineCache: () ->
-    timestamp = new Date().toISOString()
+    # An endpoint mainly for debugging - not the least bit RESTful :)
+    app.get '/flush', (req, res) ->
+      updateOfflineCache()
+      res.send('app.cache updated with timestamp ' + timestamp)
+
+  updateOfflineCache: updateOfflineCache
 
