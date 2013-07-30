@@ -29,6 +29,9 @@ define ['app'], (app) ->
       console.log('Received list event: ', event)
       $rootScope.$apply () -> $rootScope.$broadcast('event:listChange', event)
 
+    window.applicationCache?.addEventListener 'updateready', () ->
+      window.applicationCache.swapCache()
+
     #return/export
     getLatest: () -> $http.get('list').then getData, getError
     postChanges: (listChanges, listId, listStatus, listVersion) ->
@@ -60,6 +63,13 @@ define ['app'], (app) ->
       if not sseListener then return
       sseListener.sseSource.close();
       sseListeners = _.without sseListeners, sseListener
+    flushCache: () ->
+      $http.post('flush')
+      .then((response) ->
+        if not (window.applicationCache) then return
+        window.applicationCache.update()
+        getData(response)
+       , getError)
   ])
   .factory('confirmService', ['$rootScope', '$q', ($rootScope, $q) ->
     deferred = null

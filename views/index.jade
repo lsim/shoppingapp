@@ -4,13 +4,13 @@ block content
   div(data-ng-controller='ShoppingListCtrl', class='ng-cloak')
     form(data-ng-submit='addItem()')
       ng-suggest
-        input(type='text', data-ng-model='newItem.text', placeholder='Write here', autofocus)
-        ul(class='list suggestions', data-ng-show='newItem.text')
+        div(class='columns')
+          input(type='text', style='width:65%', data-ng-model='newItem.text', placeholder='Write here', autofocus)
+          button(class='button', style='padding:10px; width:33%; margin-left:2%;', data-ng-click='newItem.text') Add
+        ul(class='list suggestions', data-ng-show='list.suggestions.length')
           li(data-ng-repeat='suggestion in suggestions')
             a(data-ng-click='acceptSuggestion(suggesion)') {{suggestion}}
               span(class='chevron')
-
-      button(class='button button-block', data-ng-show='newItem.text') Add
     ul(class='list')
       li(data-ng-repeat='item in list.items | filter:deletionFilter')
         a(data-ng-click='deleteItem(item)') {{item.text}}
@@ -18,7 +18,7 @@ block content
     button(data-ng-click='getLatest()', class='button button-block') Catch up!
     div(class='feedback') online? {{isOnline && 'yes' || 'no'}} {{feedback}}
       div
-        a(href='/flush') Flush cache
+        a(data-ng-click='flushAppCache()', href='') Flush cache
 
 block dialogs
   div(class='auth-form ng-cloak')

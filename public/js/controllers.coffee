@@ -117,5 +117,8 @@ define ['app'], (app) ->
       else if $scope.list
         listAPIService.unregisterForSse($scope.list._id)
 
+    $scope.flushAppCache = () ->
+      listAPIService.flushCache()
+
   ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService', '$timeout', 'visibilityService']
   app.module.controller('ShoppingListCtrl', ShoppingListCtrl)

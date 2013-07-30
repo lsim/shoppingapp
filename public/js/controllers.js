@@ -156,7 +156,7 @@
           }), 5000);
         };
       })();
-      return $scope.$watch('isVisible', function(newValue) {
+      $scope.$watch('isVisible', function(newValue) {
         if (newValue) {
           $scope.getLatest();
           return showFeedback('visibility reported');
@@ -164,6 +164,9 @@
           return listAPIService.unregisterForSse($scope.list._id);
         }
       });
+      return $scope.flushAppCache = function() {
+        return listAPIService.flushCache();
+      };
     };
     ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService', '$timeout', 'visibilityService'];
     return app.module.controller('ShoppingListCtrl', ShoppingListCtrl);

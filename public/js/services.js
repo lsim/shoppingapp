@@ -50,7 +50,7 @@
       }
     ]).factory('listAPIService', [
       '$http', '$q', '$rootScope', 'connectivityService', function($http, $q, $rootScope) {
-        var getData, getError, handleSse, sseListeners;
+        var getData, getError, handleSse, sseListeners, _ref;
         getData = function(response) {
           return response.data;
         };
@@ -66,6 +66,11 @@
             return $rootScope.$broadcast('event:listChange', event);
           });
         };
+        if ((_ref = window.applicationCache) != null) {
+          _ref.addEventListener('updateready', function() {
+            return window.applicationCache.swapCache();
+          });
+        }
         return {
           getLatest: function() {
             return $http.get('list').then(getData, getError);
@@ -113,6 +118,15 @@
             }
             sseListener.sseSource.close();
             return sseListeners = _.without(sseListeners, sseListener);
+          },
+          flushCache: function() {
+            return $http.post('flush').then(function(response) {
+              if (!window.applicationCache) {
+                return;
+              }
+              window.applicationCache.update();
+              return getData(response);
+            }, getError);
           }
         };
       }

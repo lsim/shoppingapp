@@ -29,7 +29,7 @@ module.exports =
       '\nNETWORK:\n*')
 
     # An endpoint mainly for debugging - not the least bit RESTful :)
-    app.get '/flush', (req, res) ->
+    app.post '/flush', (req, res) ->
       updateOfflineCache()
       res.send('app.cache updated with timestamp ' + timestamp)
 

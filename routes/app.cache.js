@@ -16,7 +16,7 @@
         console.log('app.cache with timestamp ', timestamp);
         return res.send('CACHE MANIFEST\n#' + timestamp + '\nCACHE:\n' + cachedFiles.join('\n') + '\nNETWORK:\n*');
       });
-      return app.get('/flush', function(req, res) {
+      return app.post('/flush', function(req, res) {
         updateOfflineCache();
         return res.send('app.cache updated with timestamp ' + timestamp);
       });

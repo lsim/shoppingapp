@@ -50,7 +50,7 @@ define(['app'], function(app) {
                 <a ng-click='handleReply(false)' class='button no-bn'>No</a>\
             </header>\
             <div class='content content-padded'>\
-                <p>{{confirmQuestion}}</p>\
+                <p class='question'>{{confirmQuestion}}</p>\
                 <a ng-click='handleReply(true)' class='yes-bn button button-block'>Yes</a>\
             </div>\
           </div>",
