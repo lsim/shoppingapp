@@ -1,3 +1,7 @@
+require('jade');//Seems to take a long time - with lots of exceptions thrown. Load it here and spare the first client to connect the pain of waiting 13 seconds..
+//It seems to throw the exception [ReferenceError: process is not defined] for each module in the jade dependency tree
+console.log('jade loaded - continuing');
+
 var express = require('express')
   , http = require('http')
   , path = require('path')
