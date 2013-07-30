@@ -18,7 +18,7 @@ define ['app'], (app) ->
     $scope.addItem = () ->
       if not $scope.newItem.text
         return
-      $scope.list.items.push(new ListItem({ text: $scope.newItem.text }, true))
+      $scope.list.items.push(new ListItem({ text: $scope.newItem.text.trim() }, true))
       $scope.newItem.text = ''
       sendNewItems()
 

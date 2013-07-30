@@ -3,37 +3,8 @@ var express = require('express')
   , path = require('path')
   , mongoose = require('mongoose');
 
-
-if(process.env.VCAP_SERVICES){
-  // appfog handling
-  var env = JSON.parse(process.env.VCAP_SERVICES);
-  var mongo = env['mongodb-1.8'][0]['credentials'];
-} else {
-  var mongo = {
-    "hostname":"localhost",
-    "port":27017,
-    "username":"",
-    "password":"",
-    "name":"",
-    "db":"shoppingdb"
-  }
-}
-//Builds url for localhost and appfog
-var generate_mongo_url = function(obj){
-  obj.hostname = (obj.hostname || 'localhost');
-  obj.port = (obj.port || 27017);
-  obj.db = (obj.db || 'test');
-  if(obj.username && obj.password){
-    return "mongodb://" + obj.username + ":" + obj.password + "@" + obj.hostname + ":" + obj.port;
-  }
-  else{
-    return "mongodb://" + obj.hostname + ":" + obj.port;
-  }
-}
-var mongourl = process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || generate_mongo_url(mongo);
-
 //Database setup
-mongoose.connect(mongourl);
+mongoose.connect(require('./mongourl'));
 var db = mongoose.connection;
 db.on('error', function(msg) { console.log(msg); process.exit(1); });
 
@@ -64,9 +35,11 @@ app.configure('development', function(){
   app.use(express.errorHandler());
 });
 
+// Load up all endpoints
 require('./routes/index').registerEndpoints(app);
 require('./routes/auth').registerEndpoints(app);
 require('./routes/sse').registerEndpoints(app);
+require('./routes/app.cache').registerEndpoints(app);
 
 //Connect to db and start listening for connections
 db.once('open', function() {

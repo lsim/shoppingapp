@@ -25,7 +25,7 @@
           return;
         }
         $scope.list.items.push(new ListItem({
-          text: $scope.newItem.text
+          text: $scope.newItem.text.trim()
         }, true));
         $scope.newItem.text = '';
         return sendNewItems();
