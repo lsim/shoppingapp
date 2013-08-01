@@ -19,6 +19,9 @@ block content
     div(class='feedback') online? {{isOnline && 'yes' || 'no'}} {{feedback}}
       div
         a(data-ng-click='flushAppCache()', href='') Flush cache
+      div
+        a(href='/extension.crx') Download extension
+
 
 block dialogs
   div(class='auth-form ng-cloak')

@@ -44,6 +44,7 @@ require('./routes/index').registerEndpoints(app);
 require('./routes/auth').registerEndpoints(app);
 require('./routes/sse').registerEndpoints(app);
 require('./routes/app.cache').registerEndpoints(app);
+require('./routes/misc').registerEndpoints(app);
 
 //Connect to db and start listening for connections
 db.once('open', function() {
