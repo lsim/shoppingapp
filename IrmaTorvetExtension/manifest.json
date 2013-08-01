@@ -1,0 +1,18 @@
+{
+  "manifest_version": 2,
+  "background": { "scripts": ["js/jquery-1.7.2.min.js", "background.js"]},
+  "web_accessible_resources": [
+		"js/jquery-1.7.2.min.js"
+  ],
+  "content_scripts": [ {
+     "js": [ "js/jquery-1.7.2.min.js", "js/angular-1.0.6.min.js", "js/slidingtab.js", "js/extension-utility.js", "js/ng-app-module.js", "shopping.user.js" ],
+	 "css": ["css/slidingtab.css", "css/styling.css"],
+     "matches": [ "https://irma.dk/*"],
+     "run_at": "document_end"
+  } ],
+  "description": "This userscript integrates the Shopping web app with IrmaTorvet.dk",
+  "name": "IrmaTorvet Integration",
+  "options_page": "options.html",
+  "permissions": [ "http://*/*"],
+  "version": "0.2.0"
+}

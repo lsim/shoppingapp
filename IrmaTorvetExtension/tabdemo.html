@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>tab demo</title>
+    <script src="js/jquery-1.7.2.min.js" ></script>
+    <script src="js/angular-1.0.6.min.js"></script>
+</head>
+<body>
+    <style type="text/css">
+        #mytab {
+            background-color: lightblue;
+            width: 250px;
+            height: 400px;
+            position:relative;
+            z-index: 10;
+            left: -249px;
+        }
+        #tabheader {
+            background-color: lightgray;
+            position: absolute;
+            height:20px;
+            border-top-right-radius: 5px;
+            border-top-left-radius: 5px;
+            right: 0;
+            bottom: 0;
+            -webkit-transform: rotate(90deg);
+            -webkit-transform-origin: 100% 100%;
+            cursor: pointer;
+        }
+    </style>
+    <h1>Tab demo</h1>
+    <div id="mytab" style="">
+        <div id="tabheader" style="">
+            List: Avery Simonsen
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(function() {
+            var tabShown = false;
+
+            $('#mytab').on('click', function() {
+                var newLeft = tabShown ? '-249px' : '0';
+                $('#mytab')
+                    .animate({ left: newLeft })
+                    .promise().done(function() {
+                        tabShown = !tabShown;
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

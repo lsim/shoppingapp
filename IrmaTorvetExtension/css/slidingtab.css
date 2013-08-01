@@ -1,0 +1,45 @@
+.sliding-tab {
+    border: #333333 solid 1px;
+    border-radius: 5px 5px 0px 5px;
+    width: 250px;
+    min-height: 200px;
+    position:absolute;
+    z-index: 10;
+    padding: 1em;
+    box-sizing: border-box;
+    background-color: whitesmoke;
+    opacity: .95;
+}
+
+.sliding-tab.tab-left {
+    left: -250px;/*Initially render off screen*/
+}
+
+.sliding-tab.tab-right {
+    right: -250px;/*Initially render off screen*/
+}
+
+.tab-right .sliding-tabheader {
+    left: 0;
+    -webkit-transform: rotate(-90deg);
+    -webkit-transform-origin: 0 100%;
+}
+
+.tab-left .sliding-tabheader {
+    right: 0;
+    -webkit-transform: rotate(90deg);
+    -webkit-transform-origin: 100% 100%;
+}
+
+.sliding-tabheader {
+    border: #333333 solid 1px;
+    position: absolute;
+    height:20px;
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+    bottom: 0;
+    cursor: pointer;
+    padding: 3px;
+    background-color: orange;
+}
+

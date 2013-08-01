@@ -34,6 +34,18 @@ module.exports = {
       });
     });
 
+    app.get('/irmadata', auth.checkAuth, function(req, res, next) {
+      var group = req.group;
+      ShoppingListModel.findOne({status: 'Open', ownerGroup: group._id }, function(err, list) {
+        if(err) return next(err);
+        if(!list) return next('No list found');
+        return res.json({
+          title: group.name,
+          items: list.items
+        });
+      });
+    });
+
     app.get('/suggest', auth.checkAuth, function(req, res) {
       res.json(['foo', 'knækbrød']);
     });

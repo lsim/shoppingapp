@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>tab demo</title>
+    <script src="js/jquery-1.7.2.min.js" ></script>
+    <script src="js/angular-1.0.6.min.js"></script>
+    <script src="js/slidingtab.js"></script>
+    <script src="js/extension-utility.js" charset='utf-8'></script>
+    <script src="js/ng-app-module.js" charset='utf-8'></script>
+
+    <link rel="stylesheet" href="css/slidingtab.css" />
+    <link rel="stylesheet" href="css/styling.css" />
+</head>
+<body>
+    <h1>Tab demo</h1>
+    <div ng-app="irma-extension" ng-controller='IrmaExtensionCtrl'>
+        <sliding-tab tab-header='List: Avery Simonsen'>
+
+            <div name='irmaExt' class='irma-ext' ng-form ng-hide='listLoaded'>
+                <label for='userName'>User name</label>
+                <input id='userName' type='text' ng-model='irmaExt.userName' required placeholder='User name' autofocus/>
+                <label for='password'>Password</label>
+                <input id='password' type='password' ng-model='irmaExt.password' required placeholder='Password'/>
+                <button type='button' ng-click='loadListData()' class='btn' ng-disabled='!irmaExt.$valid'>Log in</button>
+                <div ng-show='errorMessage && errorMessage.length > 0'>Login failed: {{errorMessage}}</div>
+            </div>
+
+            <ul ng-show='listLoaded'>
+                <li ng-repeat='item in list.items'>
+                    <a href='#'>{{item}}</a>
+                </li>
+            </ul>
+
+        </sliding-tab>
+    </div>
+</body>
+</html>

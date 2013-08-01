@@ -1,0 +1,53 @@
+
+#irma-extension {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 100%;
+    overflow-x: hidden;
+}
+
+#irma-extension .sliding-tab {
+    position: fixed;
+}
+
+.irma-ext label, .irma-ext input, .irma-ext button, .irma-ext a {
+    display:block;
+}
+
+.irma-ext button, .irma-ext a {
+    margin-top: 1em;
+}
+
+.irma-ext input:required:invalid:focus {
+    border-color: red;
+}
+
+.irma-ext input:required:valid {
+    border-color: green;
+}
+
+.extLnk:hover {
+    cursor:pointer;
+}
+
+.smallText {
+    font-size: .7em;
+}
+
+.loading-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: whitesmoke;
+    opacity: .5;
+}
+
+.loading {
+    position: absolute;
+    right: 0;
+    top: 0;
+    background: url(../img/ajax-loader.gif) no-repeat;
+}
