@@ -2,8 +2,6 @@
  * Created with JetBrains WebStorm.
  * User: los
  * Date: 26-04-13
- * Time: 13:34
- * To change this template use File | Settings | File Templates.
  */
 
 var tabModule = angular.module('slidingTab', []);
