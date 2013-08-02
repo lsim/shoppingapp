@@ -1,5 +1,9 @@
 extends layout
 
+block header
+  h1(class='title')= title
+  a(data-ng-click='logout()', data-ng-show='isLoggedIn', class='button') Logout
+
 block content
   div(data-ng-controller='ShoppingListCtrl', class='ng-cloak')
     form(data-ng-submit='addItem()')
@@ -21,7 +25,6 @@ block content
         a(data-ng-click='flushAppCache()', href='') Flush cache
       div
         a(href='/extension.crx') Download extension
-
 
 block dialogs
   div(class='auth-form ng-cloak')

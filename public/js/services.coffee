@@ -7,12 +7,17 @@ define ['app'], (app) ->
       deferred.promise
       #$http.get('/suggest?term=' + encodeURIComponent(term))
   ])
-  .factory('authAPIService', ['$http', '$q', ($http, $q) ->
+  .factory('authAPIService', ['$http', '$q', '$rootScope', ($http, $q, $rootScope) ->
     getData = (response) -> response.data
     getError = (response) -> $q.reject(response.data)
     #return/export:
     login: (username, password) ->
       $http.post('login', {username, password}).then getData, getError
+    logout: () ->
+      $http.post('logout').then (response) ->
+        $rootScope.$broadcast('event:auth-loggedOut')
+        getData(response)
+      , getError
     getGroups: () ->
       $http.get('groups').then getData, getError
     register: (username, password, groupId, groupPassword) ->
@@ -112,6 +117,22 @@ define ['app'], (app) ->
       document.addEventListener("webkitvisibilitychange", onchange)
     else if document.hasOwnProperty(hidden = "msHidden")
       document.addEventListener("msvisibilitychange", onchange)
+  ])
+  .factory('storageService', [() ->
+    set = (key, value, storageType) ->
+      if window[storageType + 'Storage']
+        window[storageType + 'Storage'][key] = if value then JSON.stringify(value) else ''
+    get = (key, storageType) ->
+      if window[storageType + 'Storage']
+        value = window[storageType + 'Storage'][key]
+        value and JSON.parse(value)
+    #return/export
+    session:
+      get: (key) -> get(key, 'session')
+      set: (key, value) -> set(key, value, 'session')
+    local:
+      get: (key) -> get(key, 'local')
+      set: (key, value) -> set(key, value, 'local')
   ])
 
   angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer'])

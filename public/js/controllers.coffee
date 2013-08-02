@@ -90,6 +90,10 @@ define ['app'], (app) ->
       if $scope.list?._id != data.listId then return
       $scope.getLatest()
 
+    $scope.$on 'event:auth-loggedOut', () ->
+      $scope.list = null
+      $scope.getLatest() # Will cause the login screen to appear
+
     $scope.$watch 'isOnline', (newValue) ->
       if typeof newValue is not "boolean" then return
       showFeedback 'Now ' + (if newValue then 'online' else 'offline')
@@ -120,5 +124,17 @@ define ['app'], (app) ->
     $scope.flushAppCache = () ->
       listAPIService.flushCache()
 
-  ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService', '$timeout', 'visibilityService']
+  ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService', '$timeout']
   app.module.controller('ShoppingListCtrl', ShoppingListCtrl)
+
+  AppCtrl = ($scope, authAPIService) ->
+    $scope.isLoggedIn = false;
+    $scope.logout = () ->
+      authAPIService.logout().then () ->
+        $scope.isLoggedIn = false;
+
+    $scope.$on 'event:auth-loginConfirmed', () ->
+      $scope.isLoggedIn = true;
+
+  AppCtrl.$inject = ['$scope', 'authAPIService', 'visibilityService']
+  app.module.controller('AppCtrl', AppCtrl)

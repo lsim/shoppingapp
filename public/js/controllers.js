@@ -2,7 +2,7 @@
 (function() {
   'use strict';
   define(['app'], function(app) {
-    var ListItem, ShoppingListCtrl, idCounter;
+    var AppCtrl, ListItem, ShoppingListCtrl, idCounter;
     idCounter = 0;
     ListItem = function(item, isNew) {
       this.isNew = isNew;
@@ -130,6 +130,10 @@
         }
         return $scope.getLatest();
       });
+      $scope.$on('event:auth-loggedOut', function() {
+        $scope.list = null;
+        return $scope.getLatest();
+      });
       $scope.$watch('isOnline', function(newValue) {
         if (typeof newValue === !"boolean") {
           return;
@@ -168,8 +172,21 @@
         return listAPIService.flushCache();
       };
     };
-    ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService', '$timeout', 'visibilityService'];
-    return app.module.controller('ShoppingListCtrl', ShoppingListCtrl);
+    ShoppingListCtrl.$inject = ['$scope', 'listAPIService', 'confirmService', '$timeout'];
+    app.module.controller('ShoppingListCtrl', ShoppingListCtrl);
+    AppCtrl = function($scope, authAPIService) {
+      $scope.isLoggedIn = false;
+      $scope.logout = function() {
+        return authAPIService.logout().then(function() {
+          return $scope.isLoggedIn = false;
+        });
+      };
+      return $scope.$on('event:auth-loginConfirmed', function() {
+        return $scope.isLoggedIn = true;
+      });
+    };
+    AppCtrl.$inject = ['$scope', 'authAPIService', 'visibilityService'];
+    return app.module.controller('AppCtrl', AppCtrl);
   });
 
 }).call(this);

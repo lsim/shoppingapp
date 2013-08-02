@@ -70,7 +70,7 @@ define(['app'], function(app) {
           });
         }
       };
-    }]).directive('authForm', ['authAPIService', 'authService', function(authAPIService, authService) {
+    }]).directive('authForm', ['authAPIService', 'authService', 'storageService', function(authAPIService, authService, storageService) {
       return {
         scope: {},
         controller: ['$scope', '$timeout', function($scope, $timeout) {
@@ -79,6 +79,17 @@ define(['app'], function(app) {
           }
           function clearFields() {
             $scope.username = $scope.password = $scope.password1 = $scope.password2 = $scope.groupName = $scope.groupPassword = $scope.groupPassword1 = $scope.groupPassword2 = $scope.feedback = '';
+          }
+
+          function loadStoredCredentials() {
+            var login = storageService.local.get('rememberedLogin');
+            $scope.username = login && login.username;
+            $scope.password = login && login.password;
+            $scope.rememberLogin = !!login.password
+          }
+
+          function saveCredentials(username, password, storePassword) {
+            storageService.local.set('rememberedLogin', { username: username, password: storePassword ? password : '' });
           }
 
           // Call setDialogMode with falsy value to hide the auth dialog entirely
@@ -96,15 +107,17 @@ define(['app'], function(app) {
               $scope.handleHeaderClick = function() { $scope.setDialogMode('login'); };
             } else if(mode == 'login') {
               $scope.headerTitle = 'Please log in';
+              loadStoredCredentials();
               $scope.headerLinkText = 'Create user';
               $scope.handleHeaderClick = function() { $scope.setDialogMode('register'); };
             }
           };
           $scope.setDialogMode(null);
 
-          $scope.login = function(username, password) {
+          $scope.login = function(username, password, rememberLogin) {
             authAPIService.login(username, password).then(function(data) {
               authService.loginConfirmed(data);
+              saveCredentials(username, password, rememberLogin);
               clearFields();
             }, function(reason) {
               $scope.feedback = 'Login failed: ' + reason;
@@ -141,9 +154,12 @@ define(['app'], function(app) {
               <a ng-click='handleHeaderClick()' class='button'>{{headerLinkText}}</a>\
             </header>\
             <div class='content content-padded' data-ng-switch='dialogMode'>\
-              <form data-ng-switch-when='login' data-ng-submit='login(username,password)'>\
+              <form data-ng-switch-when='login' data-ng-submit='login(username,password,rememberLogin)'>\
                 <input type='text' data-ng-model='username' placeholder='Username' autofocus />\
                 <input type='password' data-ng-model='password' placeholder='Password' />\
+                <div style='text-align:right; margin:1em;'>\
+                  <label>Remember me on this device<input type='checkbox' data-ng-model='rememberLogin' /></label>\
+                </div>\
                 <button class='button button-block'>Log in</button>\
               </form>\
               <form data-ng-switch-when='register' data-ng-submit='register(username,password1,selectedGroup,groupPassword)'>\

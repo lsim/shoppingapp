@@ -1,25 +1,29 @@
 var ShoppingGroupModel = require('../models/ShoppingGroup');
+var _ = require('underscore');
+
+/* Security middleware for endpoints that require authentication*/
+function checkAuth(req, res, next) {
+  if(!req.session.user_id) {
+    res.send(401, 'Authentication required');
+    return;
+  }
+  ShoppingGroupModel.findOne({users: { $elemMatch: { _id: req.session.user_id }}},
+    function(err, group) {
+      if(err) {
+        res.send(401, 'Authentication required');
+        return;
+      }
+      req.group = group;
+      res.header('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
+      next();
+    }
+  );
+}
 
 var AuthExports = {
 
   /* Security middleware for endpoints that require authentication*/
-  checkAuth: function(req, res, next) {
-    if(!req.session.user_id) {
-      res.send(401, 'Authentication required');
-      return;
-    }
-    ShoppingGroupModel.findOne({users: { $elemMatch: { _id: req.session.user_id }}},
-      function(err, group) {
-        if(err) {
-          res.send(401, 'Authentication required');
-          return;
-        }
-        req.group = group;
-        res.header('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
-        next();
-      }
-    );
-  },
+  checkAuth: checkAuth,
 
   registerEndpoints: function(app) {
 
@@ -64,8 +68,16 @@ var AuthExports = {
           return;
         }
         req.session.user_id = user._id;
-        res.json({status: 'ok'});
+        res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.send('ok');
       });
+    });
+
+    app.post('/logout', checkAuth, function(req, res, next) {
+      if(!_.some(req.group.users, function(user) { return user._id == req.session.user_id }))
+        return next('internal error');
+      req.session.user_id = '';
+      res.send('ok');
     });
 
     app.get('/register', function(req, res) {

@@ -14,7 +14,7 @@
         };
       }
     ]).factory('authAPIService', [
-      '$http', '$q', function($http, $q) {
+      '$http', '$q', '$rootScope', function($http, $q, $rootScope) {
         var getData, getError;
         getData = function(response) {
           return response.data;
@@ -28,6 +28,12 @@
               username: username,
               password: password
             }).then(getData, getError);
+          },
+          logout: function() {
+            return $http.post('logout').then(function(response) {
+              $rootScope.$broadcast('event:auth-loggedOut');
+              return getData(response);
+            }, getError);
           },
           getGroups: function() {
             return $http.get('groups').then(getData, getError);
@@ -189,6 +195,40 @@
         } else if (document.hasOwnProperty(hidden = "msHidden")) {
           return document.addEventListener("msvisibilitychange", onchange);
         }
+      }
+    ]).factory('storageService', [
+      function() {
+        var get, set;
+        set = function(key, value, storageType) {
+          if (window[storageType + 'Storage']) {
+            return window[storageType + 'Storage'][key] = value ? JSON.stringify(value) : '';
+          }
+        };
+        get = function(key, storageType) {
+          var value;
+          if (window[storageType + 'Storage']) {
+            value = window[storageType + 'Storage'][key];
+            return value && JSON.parse(value);
+          }
+        };
+        return {
+          session: {
+            get: function(key) {
+              return get(key, 'session');
+            },
+            set: function(key, value) {
+              return set(key, value, 'session');
+            }
+          },
+          local: {
+            get: function(key) {
+              return get(key, 'local');
+            },
+            set: function(key, value) {
+              return set(key, value, 'local');
+            }
+          }
+        };
       }
     ]);
     angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer']).factory('authService', [
