@@ -77,6 +77,7 @@ var lsiexports = lsiexports || {};
   });
 
   appModule.factory('searchTriggerService', function() {
+    var hostname = location.hostname;
     function injectScript(source) {
       //Courtesy of http://voodooattack.blogspot.dk/2010/01/writing-google-chrome-extension-how-to.html
       var elem = document.getElementById('injected-script');
@@ -90,17 +91,39 @@ var lsiexports = lsiexports || {};
 
       return document.head.appendChild(elem);
     }
-    return function searchTriggerService(term) {
+
+    function triggerSearchIrma(term) {
       injectScript("\
-            var searchScope = angular.element('#siteSearchTerm').scope();\
-            if(!searchScope)\
-                return false;\
-            searchScope.$apply(function() {\
-                searchScope.term = '" + term + "';\
-                searchScope.suggest();\
-            });\
-            ");
-    };
+        var searchScope = angular.element('#siteSearchTerm').scope();\
+        if(!searchScope)\
+            return false;\
+        searchScope.$apply(function() {\
+            searchScope.term = '" + term + "';\
+            searchScope.suggest();\
+        });\
+      ");
+    }
+
+    function triggerSearchSuperBest(term) {
+      injectScript("\
+        var searchInput = jQuery('#ctl00_txtSearch');\
+        if(!searchInput) {\
+          console.error('No SuperBest search field found');\
+          return;\
+        }\
+        searchInput.val('" + term + "');\
+        searchInput.keyup();\
+      ");
+    }
+
+    if(hostname.indexOf('superbest') >= 0) {
+      console.debug('Using SuperBest search trigger')
+      return triggerSearchSuperBest;
+    } else if(hostname.indexOf('irma') >= 0) {
+      console.debug('Using Irma search trigger')
+      return triggerSearchIrma;
+    } else
+      throw 'Search trigger not implemented for unknown domain ' + hostname
   });
 
   appModule.controller('IrmaExtensionCtrl', ['$scope', 'listService', 'loadCredentialService', 'loginService', 'searchTriggerService', function($scope, listService, loadCredentialService, loginService, searchTriggerService) {

@@ -7,12 +7,12 @@
   "content_scripts": [ {
      "js": [ "js/jquery-1.7.2.min.js", "js/angular-1.0.6.min.js", "js/slidingtab.js", "js/extension-utility.js", "js/ng-app-module.js", "shopping.user.js" ],
 	 "css": ["css/slidingtab.css", "css/styling.css"],
-     "matches": [ "https://irma.dk/*"],
+     "matches": [ "https://irma.dk/*", "http://www.superbest.dk/*"],
      "run_at": "document_end"
   } ],
-  "description": "This userscript integrates the Shopping web app with www.irma.dk",
-  "name": "irma.dk integration",
+  "description": "This userscript integrates the Shopping web app with www.irma.dk and www.superbest.dk",
+  "name": "Shopping list integration",
   "options_page": "options.html",
-  "permissions": [ "http://*/*"],
-  "version": "0.2.1"
+  "permissions": [ "http://shop.averysimonsen.dk/*"],
+  "version": "0.2.2"
 }
